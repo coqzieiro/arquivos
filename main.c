@@ -35,15 +35,15 @@ int main(void){
             break;
         case 4: // funcionalidade 4 (cria arquivo de index)
             scanf("%s %s", nomeArquivoBinario, nomeArquivoIndex);
-            criarIndex();
+            criarIndex(nomeArquivoBinario, nomeArquivoIndex);
             break;
         case 5: // funcionalidade 5 (remoção lógica do arquivo de dados)
             scanf("%s %s %d", nomeArquivoBinario, nomeArquivoIndex, &numBuscas);
-            deletar();
+            deletar(nomeArquivoBinario, nomeArquivoIndex, numBuscas);
             break;
         case 6: // funcionalidade 6 (inserção de novos registros)
             scanf("%s %s %d", nomeArquivoBinario, nomeArquivoIndex, &numBuscas);
-            inserir();
+            inserir(nomeArquivoBinario, nomeArquivoIndex, numBuscas);
             break;
         default: 
             printf("Opção inválida.\n");
