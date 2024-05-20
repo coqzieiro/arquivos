@@ -31,6 +31,19 @@ int main(void){
             scanf("%s %d", nomeArquivoBinario, &numBuscas);
             buscarRegistros(nomeArquivoBinario, numBuscas);
             break;
+        case 4: // funcionalidade 1 (cria arquivo binário)
+            scanf("%s %s", nomeArquivoCSV, nomeArquivoBinario);
+            criarArquivoBinario(nomeArquivoCSV, nomeArquivoBinario);
+            binarioNaTela(nomeArquivoBinario);
+            break;
+        case 5: // funcionalidade 2 (lista os registros)
+            scanf("%s", nomeArquivoBinario);
+            listarRegistros(nomeArquivoBinario);
+            break;
+        case 6: // funcionalidade 3 (faz a busca por campos)
+            scanf("%s %d", nomeArquivoBinario, &numBuscas);
+            buscarRegistros(nomeArquivoBinario, numBuscas);
+            break;
         default: 
             printf("Opção inválida.\n");
             return(1);

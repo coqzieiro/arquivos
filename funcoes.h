@@ -6,7 +6,7 @@
 
     #include <stdint.h>
     #include <stdio.h>
-
+    
     // Registro de cabeçalho
     typedef struct {
         char status;
