@@ -14,8 +14,8 @@
         int64_t proxByteOffset;
     } REGISTRO_INDEX;
 
-    void createIndex();
-    void deleteFrom();
-    void insertInto();
+    void criarIndex();
+    void deletar();
+    void inserir();
 
 #endif

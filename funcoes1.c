@@ -1,13 +1,13 @@
 #include<stdio.h>
 
-void createIndex(){
+void criarIndex(){
 
 }
 
-void deleteFrom(){
+void deletar(){
 
 }
 
-void insertInto(){
+void inserir(){
     
 }
