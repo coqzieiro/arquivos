@@ -218,7 +218,7 @@ void listarRegistros(const char* nomeArquivoBinario) {
 
     // Se o arquivo estiver inconsistente
     if (cabecalho.status == '0') {
-        printf("Arquivo inconsistente.\n");
+        printf("Falha no processamento do arquivo.\n");
         fclose(arquivoBinario);
         return;
     }
