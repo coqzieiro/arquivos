@@ -11,7 +11,7 @@
     // Registro de dados
     typedef struct {
         int id;
-        int64_t proxByteOffset;
+        int64_t byteOffset;
     } REGISTRO_INDEX;
 
     void criarIndex();
