@@ -14,8 +14,8 @@
         int64_t byteOffset;
     } REGISTRO_INDEX;
 
-    void criarIndex();
-    void deletar();
+    void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices);
+    void deletar(char* nomeArquivoBinario, char* nomeArquivoIndex, int numBuscas);
     void inserir();
 
 #endif

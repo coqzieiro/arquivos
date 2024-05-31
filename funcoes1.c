@@ -113,12 +113,118 @@ void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices){
     return;
 }
 
-/*
-void deletar(){
+void deletar(char* nomeArquivoBinario, char* nomeArquivoIndex, int numBuscas) {
+    FILE* arquivoDados = fopen(nomeArquivoBinario, "rb+");
+    FILE* arquivoIndice = fopen(nomeArquivoIndex, "rb+");
 
-}
+    if (!arquivoDados || !arquivoIndice) {
+        printf("Falha no processamento do arquivo.\n");
+        if (arquivoDados) fclose(arquivoDados);
+        if (arquivoIndice) fclose(arquivoIndice);
+        return;
+    }
 
-void inserir(){
-    
+    CABECALHO cabecalho;
+    leitura_cabecalho(&cabecalho, arquivoDados);
+
+    CABECALHO_INDEX cabecalhoIndex;
+    fread(&cabecalhoIndex, sizeof(CABECALHO_INDEX), 1, arquivoIndice);
+
+    CAMPO_BUSCA criterios[MAX_CAMPO];
+    int registrosRemovidos = 0;
+
+    for (int busca = 0; busca < numBuscas; busca++) {
+        int numCamposBusca;
+        scanf("%d", &numCamposBusca);
+        getchar(); // Limpa o buffer do '\n'
+
+        for (int i = 0; i < numCamposBusca; i++) {
+            scanf("%s", criterios[i].nomeCampo);
+            getchar(); // Limpa o buffer do '\n'
+
+            if (strcmp(criterios[i].nomeCampo, "id") == 0 || strcmp(criterios[i].nomeCampo, "idade") == 0) {
+                scanf("%d", &criterios[i].valorInt);
+                getchar(); // Limpa o buffer do '\n'
+            } else {
+                scan_quote_string(criterios[i].valorString);
+            }
+        }
+
+        fseek(arquivoDados, 25, SEEK_SET);
+        int64_t byteOffset;
+        DADOS registro;
+
+        while (fread(&registro.removido, sizeof(char), 1, arquivoDados) == 1) {
+            fread(&registro.tamanhoRegistro, sizeof(int), 1, arquivoDados);
+            byteOffset = ftell(arquivoDados) - 5;
+
+            fread(&registro.prox, sizeof(int64_t), 1, arquivoDados);
+            fread(&registro.id, sizeof(int), 1, arquivoDados);
+            fread(&registro.idade, sizeof(int), 1, arquivoDados);
+            fread(&registro.tamNomeJog, sizeof(int), 1, arquivoDados);
+            fread(registro.nomeJogador, sizeof(char), registro.tamNomeJog, arquivoDados);
+            registro.nomeJogador[registro.tamNomeJog] = '\0';
+            fread(&registro.tamNacionalidade, sizeof(int), 1, arquivoDados);
+            fread(registro.nacionalidade, sizeof(char), registro.tamNacionalidade, arquivoDados);
+            registro.nacionalidade[registro.tamNacionalidade] = '\0';
+            fread(&registro.tamNomeClube, sizeof(int), 1, arquivoDados);
+            fread(registro.nomeClube, sizeof(char), registro.tamNomeClube, arquivoDados);
+            registro.nomeClube[registro.tamNomeClube] = '\0';
+
+            if (registro.removido == '0' && todosCamposCorrespondem(registro, criterios, numCamposBusca)) {
+                registro.removido = '1';
+                fseek(arquivoDados, byteOffset, SEEK_SET);
+                fwrite(&registro.removido, sizeof(char), 1, arquivoDados);
+                fseek(arquivoDados, byteOffset + 5 + sizeof(int64_t) + sizeof(int) * 2, SEEK_SET);
+                fwrite(&cabecalho.topo, sizeof(int64_t), 1, arquivoDados);
+                cabecalho.topo = byteOffset;
+                cabecalho.nroRegRem++;
+                registrosRemovidos++;
+
+                // Atualizar o arquivo de índice
+                fseek(arquivoIndice, 1, SEEK_SET); // Pula o status
+                int nroIndices;
+                fread(&nroIndices, sizeof(int), 1, arquivoIndice);
+
+                REGISTRO_INDEX indice;
+                FILE* novoArquivoIndice = fopen("tmp.bin", "wb+");
+                fwrite(&cabecalhoIndex.status, sizeof(char), 1, novoArquivoIndice);
+                fwrite(&nroIndices, sizeof(int), 1, novoArquivoIndice);
+
+                fseek(arquivoIndice, sizeof(CABECALHO_INDEX), SEEK_SET);
+                for (int i = 0; i < nroIndices; i++) {
+                    fread(&indice.id, sizeof(int), 1, arquivoIndice);
+                    fread(&indice.byteOffset, sizeof(int64_t), 1, arquivoIndice);
+
+                    if (indice.id != registro.id) {
+                        fwrite(&indice.id, sizeof(int), 1, novoArquivoIndice);
+                        fwrite(&indice.byteOffset, sizeof(int64_t), 1, novoArquivoIndice);
+                    }
+                }
+
+                fclose(arquivoIndice);
+                fclose(novoArquivoIndice);
+
+                remove(nomeArquivoIndex);
+                rename("tmp.bin", nomeArquivoIndex);
+                arquivoIndice = fopen(nomeArquivoIndex, "rb+");
+            }
+
+            fseek(arquivoDados, byteOffset + registro.tamanhoRegistro + 5, SEEK_SET);
+        }
+    }
+
+    cabecalho.status = '1';
+    fseek(arquivoDados, 0, SEEK_SET);
+    escrita_cabecalho(&cabecalho, arquivoDados);
+
+    fseek(arquivoIndice, 0, SEEK_SET);
+    fwrite(&cabecalhoIndex.status, sizeof(char), 1, arquivoIndice);
+
+    fclose(arquivoDados);
+    fclose(arquivoIndice);
+
+    // Exibir conteúdo dos arquivos
+    binarioNaTela(nomeArquivoBinario);
+    binarioNaTela(nomeArquivoIndex);
 }
-*/

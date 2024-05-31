@@ -37,12 +37,12 @@ int main(void){
             scanf("%s %s", nomeArquivoBinario, nomeArquivoIndex);
             criarIndex(nomeArquivoBinario, nomeArquivoIndex);
             break;
-        /*
+        
         case 5: // funcionalidade 5 (remoção lógica do arquivo de dados)
             scanf("%s %s %d", nomeArquivoBinario, nomeArquivoIndex, &numBuscas);
             deletar(nomeArquivoBinario, nomeArquivoIndex, numBuscas);
             break;
-        case 6: // funcionalidade 6 (inserção de novos registros)
+        /*case 6: // funcionalidade 6 (inserção de novos registros)
             scanf("%s %s %d", nomeArquivoBinario, nomeArquivoIndex, &numBuscas);
             inserir(nomeArquivoBinario, nomeArquivoIndex, numBuscas);
             break;
