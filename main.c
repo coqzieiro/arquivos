@@ -36,7 +36,6 @@ int main(void){
         case 4: // funcionalidade 4 (cria arquivo de index)
             scanf("%s %s", nomeArquivoBinario, nomeArquivoIndex);
             criarIndex(nomeArquivoBinario, nomeArquivoIndex);
-            binarioNaTela(nomeArquivoIndex);
             break;
         /*
         case 5: // funcionalidade 5 (remoção lógica do arquivo de dados)

@@ -23,7 +23,6 @@ void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices){
     FILE* arquivoBinario = fopen(nomeArquivoBinario, "rb");
     if (arquivoBinario == NULL){
         printf("Falha no processamento do arquivo.\n");
-        fclose(arquivoBinario);
         return;
     }
 
@@ -31,7 +30,6 @@ void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices){
     FILE* arquivoBinarioDeIndices = fopen(nomeArquivoBinDeIndices, "wb");
     if (arquivoBinarioDeIndices == NULL){
         printf("Falha no processamento do arquivo.\n");
-        fclose(arquivoBinarioDeIndices);
         return;
     }
     // Inicialização do cabeçalho
@@ -44,6 +42,16 @@ void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices){
 
     // Variáveis para armazenar dados do registro
     REGISTRO_INDEX registro_index;
+
+    char statusCabecalhoArquivoBinario;
+
+    fread(&statusCabecalhoArquivoBinario, sizeof(char), 1, arquivoBinario);
+
+    // Verifica a consistência do arquivo
+    if(statusCabecalhoArquivoBinario == '0'){
+        printf("Falha no processamento do arquivo.\n");
+        return;
+    }
 
     // Pula o cabeçalho do arquivo de dados
     fseek(arquivoBinario, 25, SEEK_SET);
@@ -100,6 +108,7 @@ void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices){
     // Fechamento dos arquivos
     fclose(arquivoBinario);
     fclose(arquivoBinarioDeIndices);
+    binarioNaTela(nomeArquivoBinDeIndices);
 
     return;
 }
