@@ -6,6 +6,7 @@ INTEGRANTES DO GRUPO:
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "funcoes.h"
 #include "funcoes1.h"
 #include "funcoes_fornecidas.h"
@@ -37,16 +38,32 @@ int main(void){
             scanf("%s %s", nomeArquivoBinario, nomeArquivoIndex);
             criarIndex(nomeArquivoBinario, nomeArquivoIndex);
             break;
-        
-        case 5: // funcionalidade 5 (remoção lógica do arquivo de dados)
+        case 5:  // funcionalidade 5 (remoção lógica do arquivo de dados)
             scanf("%s %s %d", nomeArquivoBinario, nomeArquivoIndex, &numBuscas);
-            deletar(nomeArquivoBinario, nomeArquivoIndex, numBuscas);
+            CAMPO_BUSCA criterios[10][10]; // Supondo no máximo 10 critérios com no máximo 10 campos cada
+            int x[10]; // Número de campos para cada critério
+
+            for (int i = 0; i < numBuscas; i++) {
+                scanf("%d", &x[i]); // Lê o número de campos para o critério atual
+                for (int j = 0; j < x[i]; j++) {
+                    char campo[20];
+                    scanf("%s", campo); // Lê o nome do campo
+
+                    if (strcmp(campo, "id") == 0 || strcmp(campo, "idade") == 0) {
+                        scanf("%d", &criterios[i][j].valorInt); // Lê o valor inteiro do campo
+                    } else {
+                        scan_quote_string(criterios[i][j].valorString); // Lê o valor da string do campo
+                    }
+
+                    strcpy(criterios[i][j].nomeCampo, campo); // Copia o nome do campo
+                }
+            }
+            deletar(nomeArquivoBinario, nomeArquivoIndex, numBuscas, criterios, x);
             break;
         /*case 6: // funcionalidade 6 (inserção de novos registros)
             scanf("%s %s %d", nomeArquivoBinario, nomeArquivoIndex, &numBuscas);
             inserir(nomeArquivoBinario, nomeArquivoIndex, numBuscas);
-            break;
-        */
+            break;*/
         default: 
             printf("Opção inválida.\n");
             return(1);
