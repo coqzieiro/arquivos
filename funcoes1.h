@@ -26,10 +26,11 @@
     void atualizarCabecalho(CABECALHO *cabecalho, FILE *arquivoBinario);
     void atualizarIndice(const char *arquivoIndice, int id);
 
-    // Funcionalidades 4, 5 e 6
+    // Funcionalidade 4
     void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices);
+    // Funcionalidade 5
     void deletar(char* nomeArquivoBinario, char* nomeArquivoIndex, int numBuscas, CAMPO_BUSCA criterios[][10], int x[]);
-
-    /*void inserir(nomeArquivoBinario, nomeArquivoIndex, numBuscas);*/
+    // Funcionalidade 6
+    void inserir(char* nomeArquivoBinario, char* nomeArquivoIndex, int numBuscas);
 
 #endif
