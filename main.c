@@ -31,7 +31,7 @@ int main(void){
             scanf("%s %s", nomeArquivoBinario, nomeArquivoIndex);
             criarIndex(nomeArquivoBinario, nomeArquivoIndex);
             break;
-        case 5: { // funcionalidade 5 (remoção lógica do arquivo de dados)
+        case 5:  // funcionalidade 5 (remoção lógica do arquivo de dados)
             scanf("%s %s %d", nomeArquivoBinario, nomeArquivoIndex, &numBuscas);
             CAMPO_BUSCA criterios[10][10]; // Supondo no máximo 10 critérios com no máximo 10 campos cada
             int x[10]; // Número de campos para cada critério
@@ -39,17 +39,20 @@ int main(void){
             for (int i = 0; i < numBuscas; i++) {
                 scanf("%d", &x[i]); // Lê o número de campos para o critério atual
                 for (int j = 0; j < x[i]; j++) {
-                    scan_quote_string(criterios[i][j].nomeCampo); // Utiliza a função para ler a string
-                    if (strcmp(criterios[i][j].nomeCampo, "id") == 0) {
+                    char campo[20];
+                    scanf("%s", campo); // Lê o nome do campo
+
+                    if (strcmp(campo, "id") == 0 || strcmp(campo, "idade") == 0) {
                         scanf("%d", &criterios[i][j].valorInt); // Lê o valor inteiro do campo
                     } else {
-                        scan_quote_string(criterios[i][j].valorString); // Utiliza a função para ler a string
+                        scan_quote_string(criterios[i][j].valorString); // Lê o valor da string do campo
                     }
+
+                    strcpy(criterios[i][j].nomeCampo, campo); // Copia o nome do campo
                 }
             }
-            deletar(nomeArquivoBinario, nomeArquivoIndex, numBuscas, criterios, x);
+            remover(nomeArquivoBinario, nomeArquivoIndex, numBuscas);
             break;
-        }
         case 6: // funcionalidade 6 (inserção de novos registros)
             scanf("%s %s %d", nomeArquivoBinario, nomeArquivoIndex, &numBuscas);
             inserir(nomeArquivoBinario, nomeArquivoIndex, numBuscas);

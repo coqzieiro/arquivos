@@ -38,12 +38,11 @@
         char valorString[MAX_CAMPO];
     } CAMPO_BUSCA;
 
+    // Funcionalidade 1
     void criarArquivoBinario(char* nomeArquivoCSV, char* nomeArquivoBinario);
+    // Funcionalidade 2
     void listarRegistros(const char* nomeArquivoBinario);
+    // Funcionalidade 3
     void buscarRegistros(const char *arquivoEntrada, int numBuscas);
-    void leitura_cabecalho(CABECALHO* cabecalho, FILE* arquivoBinario);
-    void leitura_registro(DADOS* registro, FILE* arquivoBinario);
-    void escrita_cabecalho(CABECALHO* cabecalho, FILE* arquivoBinario);
-    void escrita_registro(DADOS* registro, FILE* arquivoBinario);
 
 #endif

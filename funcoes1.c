@@ -4,20 +4,11 @@
 #include "funcoes_fornecidas.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <string.h>
 #include <ctype.h>
 
-// Função para escrita no cabecalho
-void escrita_cabecalho_index(CABECALHO_INDEX* cabecalho_index, FILE* nomeArquivoBinarioDeIndices){
-    fwrite(&cabecalho_index->status,           sizeof(cabecalho_index->status),         1, nomeArquivoBinarioDeIndices);
-}
-
-// Função para escrita do registro no arquivo de índices
-void escrita_registro_index(REGISTRO_INDEX* registro_index, FILE* nomeArquivoBinarioDeIndices) {
-    fwrite(&registro_index->id, sizeof(registro_index->id), 1, nomeArquivoBinarioDeIndices);
-    fwrite(&registro_index->byteOffset, sizeof(registro_index->byteOffset), 1, nomeArquivoBinarioDeIndices);
-}
-
+// Função para criar index a partir do arquivo binário
 void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices){
     // Abertura dos arquivos
     FILE* arquivoBinario = fopen(nomeArquivoBinario, "rb");
@@ -113,111 +104,84 @@ void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices){
     return;
 }
 
-// Função para remover logicamente um registro com base em um critério de busca
-void removerRegistroLogico(FILE *arquivoBinario, int64_t offset, CABECALHO *cabecalho) {
-    DADOS registro;
-    fseek(arquivoBinario, offset, SEEK_SET);
-    fread(&registro, sizeof(DADOS), 1, arquivoBinario);
-    
-    registro.removido = '1';
-    registro.prox = cabecalho->topo;
-    cabecalho->topo = offset;
-    cabecalho->nroRegRem++;
-    
-    fseek(arquivoBinario, offset, SEEK_SET);
-    fwrite(&registro, sizeof(DADOS), 1, arquivoBinario);
-}
+// Função para remover registro no arquivo binário
+void remover(char *nomeArquivoDados, char *nomeArquivoIndice, int numRemocoes) {
+    FILE *arquivoDados = fopen(nomeArquivoDados, "r+b");
+    FILE *arquivoIndice = fopen(nomeArquivoIndice, "r+b");
+    if (arquivoDados == NULL || arquivoIndice == NULL) {
+        printf("Falha no processamento do arquivo.\n");
+        if (arquivoDados != NULL) fclose(arquivoDados);
+        if (arquivoIndice != NULL) fclose(arquivoIndice);
+        return;
+    }
 
-// Função para atualizar o cabeçalho do arquivo binário
-void atualizarCabecalho(CABECALHO *cabecalho, FILE *arquivoBinario) {
-    fseek(arquivoBinario, 0, SEEK_SET);
-    fwrite(cabecalho, sizeof(CABECALHO), 1, arquivoBinario);
-}
+    CABECALHO cabecalhoDados, cabecalhoIndice;
+    leitura_cabecalho(&cabecalhoDados, arquivoDados);
+    leitura_cabecalho(&cabecalhoIndice, arquivoIndice);
 
-// Função para buscar registros e remover conforme o critério
-int buscarERemover(FILE *arquivoBinario, CABECALHO *cabecalho, CAMPO_BUSCA *criterio, int x) {
-    DADOS registro;
-    int64_t offset = sizeof(CABECALHO);
-    int encontrou = 0;
-    
-    while (fread(&registro, sizeof(DADOS), 1, arquivoBinario) == 1) {
-        if (registro.removido == '0') {
-            int match = 1;
-            for (int i = 0; i < x; i++) {
-                if (strcmp(criterio[i].nomeCampo, "id") == 0 && registro.id != criterio[i].valorInt) {
-                    match = 0;
-                } else if (strcmp(criterio[i].nomeCampo, "idade") == 0 && registro.idade != criterio[i].valorInt) {
-                    match = 0;
-                } else if (strcmp(criterio[i].nomeCampo, "nomeJogador") == 0 && strcmp(registro.nomeJogador, criterio[i].valorString) != 0) {
-                    match = 0;
-                } else if (strcmp(criterio[i].nomeCampo, "nacionalidade") == 0 && strcmp(registro.nacionalidade, criterio[i].valorString) != 0) {
-                    match = 0;
-                } else if (strcmp(criterio[i].nomeCampo, "nomeClube") == 0 && strcmp(registro.nomeClube, criterio[i].valorString) != 0) {
-                    match = 0;
-                }
+    if (cabecalhoDados.status == '0' || cabecalhoIndice.status == '0') {
+        printf("Falha no processamento do arquivo.\n");
+        fclose(arquivoDados);
+        fclose(arquivoIndice);
+        return;
+    }
+
+    for (int i = 0; i < numRemocoes; i++) {
+        int numCamposBusca;
+        scanf("%d", &numCamposBusca);
+
+        CAMPO_BUSCA camposBusca[numCamposBusca];
+        for (int j = 0; j < numCamposBusca; j++) {
+            scanf("%s", camposBusca[j].nomeCampo);
+            if (validarNomeCampo(camposBusca[j].nomeCampo) == 0) {
+                printf("Falha no processamento do arquivo.\n");
+                fclose(arquivoDados);
+                fclose(arquivoIndice);
+                return;
             }
-            if (match) {
-                removerRegistroLogico(arquivoBinario, offset, cabecalho);
-                encontrou = 1;
+
+            if (strcmp(camposBusca[j].nomeCampo, "id") == 0 || strcmp(camposBusca[j].nomeCampo, "idade") == 0) {
+                scanf("%d", &camposBusca[j].valorInt);
+            } else {
+                scanf(" \"%[^\"]\"", camposBusca[j].valorString);
+            }
+        }
+
+        DADOS registro;
+        fseek(arquivoDados, 25, SEEK_SET); // Vai para o início dos registros de dados
+        int64_t offsetRemovido = -1;
+        while (ftell(arquivoDados) < cabecalhoDados.proxByteOffset) {
+            int64_t byteOffset = ftell(arquivoDados);
+            leitura_registro(&registro, arquivoDados);
+            if (registro.removido == '1' && todosCamposCorrespondem(registro, camposBusca, numCamposBusca)) {
+                registro.removido = '0'; // Marca como removido
+                fseek(arquivoDados, byteOffset, SEEK_SET);
+                escrita_registro(&registro, arquivoDados);
+
+                offsetRemovido = byteOffset;
+                cabecalhoDados.nroRegArq--;
+                cabecalhoDados.nroRegRem++;
                 break;
             }
         }
-        offset += sizeof(DADOS);
-    }
-    return encontrou;
-}
 
-// Função para atualizar o índice após a remoção de um registro
-void atualizarIndice(const char *arquivoIndice, int id) {
-    FILE *arquivoIdx = fopen(arquivoIndice, "rb+");
-    if (!arquivoIdx) {
-        printf("Falha no processamento do arquivo de índice.\n");
-        return;
-    }
-
-    REGISTRO_INDEX indice;
-    while (fread(&indice, sizeof(REGISTRO_INDEX), 1, arquivoIdx) == 1) {
-        if (indice.id == id) {
-            indice.byteOffset = -1; // Marca o registro como removido
-            fseek(arquivoIdx, -sizeof(REGISTRO_INDEX), SEEK_CUR);
-            fwrite(&indice, sizeof(REGISTRO_INDEX), 1, arquivoIdx);
-            break;
+        if (offsetRemovido != -1) {
+            atualizarIndiceRemocao(arquivoIndice, &cabecalhoIndice, registro.id);
+            inserirNoListaRemovidos(arquivoDados, &cabecalhoDados, offsetRemovido, registro.tamanhoRegistro + 5);
         }
     }
 
-    fclose(arquivoIdx);
-}
+    fseek(arquivoDados, 0, SEEK_SET);
+    escrita_cabecalho(&cabecalhoDados, arquivoDados);
 
-// Função para processar os critérios de busca e realizar as remoções
-void deletar(char* nomeArquivoBinario, char* nomeArquivoIndex, int numBuscas, CAMPO_BUSCA criterios[][10], int x[]) {
-    FILE *arquivoBinario = fopen(nomeArquivoBinario, "rb+");
-    if (!arquivoBinario) {
-        printf("Falha no processamento do arquivo.\n");
-        return;
-    }
-    CABECALHO cabecalho;
-    leitura_cabecalho(&cabecalho, arquivoBinario);
+    fseek(arquivoIndice, 0, SEEK_SET);
+    escrita_cabecalho(&cabecalhoIndice, arquivoIndice);
 
-    for (int i = 0; i < numBuscas; i++) {
-        int encontrou = buscarERemover(arquivoBinario, &cabecalho, criterios[i], x[i]);
-        if (encontrou) {
-            // Atualiza o índice
-            for (int j = 0; j < x[i]; j++) {
-                if (strcmp(criterios[i][j].nomeCampo, "id") == 0) {
-                    atualizarIndice(nomeArquivoIndex, criterios[i][j].valorInt);
-                }
-            }
-        } else {
-            printf("Registro não encontrado para o critério %d.\n", i + 1);
-        }
-    }
+    fclose(arquivoDados);
+    fclose(arquivoIndice);
 
-    atualizarCabecalho(&cabecalho, arquivoBinario);
-    fclose(arquivoBinario);
-
-    // Exibir o conteúdo do arquivo binário com a função binarioNaTela
-    binarioNaTela(nomeArquivoBinario);
-    binarioNaTela(nomeArquivoIndex);
+    binarioNaTela(nomeArquivoDados);
+    binarioNaTela(nomeArquivoIndice);
 }
 
 // Função para inserir novo registro no arquivo binário

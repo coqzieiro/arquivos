@@ -12,62 +12,6 @@ INTEGRANTES DO GRUPO:
 #include <string.h>
 #include <ctype.h>
 
-// Função para leitura do cabeçalho
-void leitura_cabecalho(CABECALHO* cabecalho, FILE* arquivoBinario) {
-    fread(&cabecalho->status,         sizeof(cabecalho->status),         1, arquivoBinario);
-    fread(&cabecalho->topo,           sizeof(cabecalho->topo),           1, arquivoBinario);    
-    fread(&cabecalho->proxByteOffset, sizeof(cabecalho->proxByteOffset), 1, arquivoBinario);  
-    fread(&cabecalho->nroRegArq,      sizeof(cabecalho->nroRegArq),      1, arquivoBinario);  
-    fread(&cabecalho->nroRegRem,      sizeof(cabecalho->nroRegRem),      1, arquivoBinario);
-}
-
-// Função para leitura do registro
-void leitura_registro(DADOS* registro, FILE* arquivoBinario){
-    fread(&registro->removido,        sizeof(registro->removido),         1,                          arquivoBinario);
-    fread(&registro->tamanhoRegistro, sizeof(registro->tamanhoRegistro),  1,                          arquivoBinario);  
-    fread(&registro->prox,            sizeof(registro->prox),             1,                          arquivoBinario);   
-    fread(&registro->id,              sizeof(registro->id),               1,                          arquivoBinario);   
-    fread(&registro->idade,           sizeof(registro->idade),            1,                          arquivoBinario);
-    fread(&registro->tamNomeJog,      sizeof(registro->tamNomeJog),       1,                          arquivoBinario);
-    registro->nomeJogador[registro->tamNomeJog] ='\0';     
-
-    fread(&registro->nomeJogador,     sizeof(char),                      registro->tamNomeJog,        arquivoBinario);
-    
-    fread(&registro->tamNacionalidade,sizeof(registro->tamNacionalidade), 1,                          arquivoBinario);
-    registro->nacionalidade[registro->tamNacionalidade] ='\0';
-
-    fread(&registro->nacionalidade,   sizeof(char),                      registro->tamNacionalidade,  arquivoBinario);
-    
-    fread(&registro->tamNomeClube,    sizeof(registro->tamNomeClube),     1,                          arquivoBinario);
-    registro->nomeClube[registro->tamNomeClube] ='\0';
-
-    fread(&registro->nomeClube,       sizeof(char),                      registro->tamNomeClube,      arquivoBinario);
-}
-
-// Função para escrita no cabecalho
-void escrita_cabecalho(CABECALHO* cabecalho, FILE* arquivoBinario){
-    fwrite(&cabecalho->status,           sizeof(cabecalho->status),         1, arquivoBinario);
-    fwrite(&cabecalho->topo,             sizeof(cabecalho->topo),           1, arquivoBinario);
-    fwrite(&cabecalho->proxByteOffset,   sizeof(cabecalho->proxByteOffset), 1, arquivoBinario);
-    fwrite(&cabecalho->nroRegArq,        sizeof(cabecalho->nroRegArq),      1, arquivoBinario);
-    fwrite(&cabecalho->nroRegRem,        sizeof(cabecalho->nroRegRem),      1, arquivoBinario);
-}
-
-// Função para escrita no registro
-void escrita_registro(DADOS* registro, FILE* arquivoBinario){
-    fwrite(&registro->removido,          sizeof(registro->removido),         1,                         arquivoBinario);
-    fwrite(&registro->tamanhoRegistro,   sizeof(registro->tamanhoRegistro),  1,                         arquivoBinario);
-    fwrite(&registro->prox,              sizeof(registro->prox),             1,                         arquivoBinario);
-    fwrite(&registro->id,                sizeof(registro->id),               1,                         arquivoBinario);
-    fwrite(&registro->idade,             sizeof(registro->idade),            1,                         arquivoBinario);
-    fwrite(&registro->tamNomeJog,        sizeof(registro->tamNomeJog),       1,                         arquivoBinario);
-    fwrite(&registro->nomeJogador,       sizeof(char),                      registro->tamNomeJog,       arquivoBinario);
-    fwrite(&registro->tamNacionalidade,  sizeof(registro->tamNacionalidade), 1,                         arquivoBinario);
-    fwrite(&registro->nacionalidade,     sizeof(char),                      registro->tamNacionalidade, arquivoBinario);
-    fwrite(&registro->tamNomeClube,      sizeof(registro->tamNomeClube),     1,                         arquivoBinario);
-    fwrite(&registro->nomeClube,         sizeof(char),                      registro->tamNomeClube,     arquivoBinario);
-}
-
 // Função para criar o arquivo binário
 void criarArquivoBinario(char* nomeArquivoCSV, char* nomeArquivoBinario){
 
