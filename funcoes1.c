@@ -143,7 +143,7 @@ void remover(char *nomeArquivoDados, char *nomeArquivoIndice, int numRemocoes) {
             if (strcmp(camposBusca[j].nomeCampo, "id") == 0 || strcmp(camposBusca[j].nomeCampo, "idade") == 0) {
                 scanf("%d", &camposBusca[j].valorInt);
             } else {
-                scanf(" \"%[^\"]\"", camposBusca[j].valorString);
+                scan_quote_string(camposBusca[j].valorString);
             }
         }
 
