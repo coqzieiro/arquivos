@@ -1,6 +1,10 @@
 #ifndef FUNCOES1_H
 
     #define FUNCOES1_H
+
+    #define TAM_CAMPO 20
+    #define TAM_STRING 100
+
     #include <stdint.h>
     
     // Registro de index do cabeçalho
@@ -15,7 +19,7 @@
     } REGISTRO_INDEX;
 
     // Funcionalidade 4
-    void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices);
+    void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices, int opcao);
     // Funcionalidade 5
     void remover(char *nomeArquivoDados, char *nomeArquivoIndice, int numRemocoes);
     // Funcionalidade 6

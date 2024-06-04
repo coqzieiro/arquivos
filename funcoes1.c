@@ -9,7 +9,7 @@
 #include <ctype.h>
 
 // Função para criar index a partir do arquivo binário
-void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices){
+void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices, int opcao){
     // Abertura dos arquivos
     FILE* arquivoBinario = fopen(nomeArquivoBinario, "rb");
     if (arquivoBinario == NULL){
@@ -99,13 +99,16 @@ void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices){
     // Fechamento dos arquivos
     fclose(arquivoBinario);
     fclose(arquivoBinarioDeIndices);
-    binarioNaTela(nomeArquivoBinDeIndices);
+
+    if(opcao == 4){ // só imprime na funcionalidade 4
+        binarioNaTela(nomeArquivoBinDeIndices);
+    }
 
     return;
 }
 
-// Função para remover registro no arquivo binário
 void remover(char *nomeArquivoDados, char *nomeArquivoIndice, int numRemocoes) {
+
     FILE *arquivoDados = fopen(nomeArquivoDados, "r+b");
     FILE *arquivoIndice = fopen(nomeArquivoIndice, "r+b");
     if (arquivoDados == NULL || arquivoIndice == NULL) {
@@ -115,9 +118,10 @@ void remover(char *nomeArquivoDados, char *nomeArquivoIndice, int numRemocoes) {
         return;
     }
 
-    CABECALHO cabecalhoDados, cabecalhoIndice;
+    CABECALHO cabecalhoDados;
+    CABECALHO_INDEX cabecalhoIndice;
     leitura_cabecalho(&cabecalhoDados, arquivoDados);
-    leitura_cabecalho(&cabecalhoIndice, arquivoIndice);
+    leitura_cabecalho_index(&cabecalhoIndice, arquivoIndice);
 
     if (cabecalhoDados.status == '0' || cabecalhoIndice.status == '0') {
         printf("Falha no processamento do arquivo.\n");
@@ -130,11 +134,34 @@ void remover(char *nomeArquivoDados, char *nomeArquivoIndice, int numRemocoes) {
         int numCamposBusca;
         scanf("%d", &numCamposBusca);
 
-        CAMPO_BUSCA camposBusca[numCamposBusca];
+        CAMPO_BUSCA *camposBusca = malloc(numCamposBusca * sizeof(CAMPO_BUSCA));
+        if (camposBusca == NULL) {
+            printf("Erro de alocação de memória.\n");
+            fclose(arquivoDados);
+            fclose(arquivoIndice);
+            return;
+        }
+
         for (int j = 0; j < numCamposBusca; j++) {
+            camposBusca[j].nomeCampo = malloc(TAM_CAMPO * sizeof(char));
+            if (camposBusca[j].nomeCampo == NULL) {
+                printf("Erro de alocação de memória.\n");
+                for (int k = 0; k < j; k++) {
+                    free(camposBusca[k].nomeCampo);
+                }
+                free(camposBusca);
+                fclose(arquivoDados);
+                fclose(arquivoIndice);
+                return;
+            }
+
             scanf("%s", camposBusca[j].nomeCampo);
             if (validarNomeCampo(camposBusca[j].nomeCampo) == 0) {
                 printf("Falha no processamento do arquivo.\n");
+                for (int k = 0; k <= j; k++) {
+                    free(camposBusca[k].nomeCampo);
+                }
+                free(camposBusca);
                 fclose(arquivoDados);
                 fclose(arquivoIndice);
                 return;
@@ -143,39 +170,75 @@ void remover(char *nomeArquivoDados, char *nomeArquivoIndice, int numRemocoes) {
             if (strcmp(camposBusca[j].nomeCampo, "id") == 0 || strcmp(camposBusca[j].nomeCampo, "idade") == 0) {
                 scanf("%d", &camposBusca[j].valorInt);
             } else {
+                camposBusca[j].valorString = malloc(TAM_STRING * sizeof(char));
+                if (camposBusca[j].valorString == NULL) {
+                    printf("Erro de alocação de memória.\n");
+                    for (int k = 0; k <= j; k++) {
+                        free(camposBusca[k].nomeCampo);
+                        if (camposBusca[k].valorString != NULL) free(camposBusca[k].valorString);
+                    }
+                    free(camposBusca);
+                    fclose(arquivoDados);
+                    fclose(arquivoIndice);
+                    return;
+                }
                 scan_quote_string(camposBusca[j].valorString);
             }
         }
 
         DADOS registro;
-        fseek(arquivoDados, 25, SEEK_SET); // Vai para o início dos registros de dados
         int64_t offsetRemovido = -1;
-        while (ftell(arquivoDados) < cabecalhoDados.proxByteOffset) {
-            int64_t byteOffset = ftell(arquivoDados);
-            leitura_registro(&registro, arquivoDados);
-            if (registro.removido == '1' && todosCamposCorrespondem(registro, camposBusca, numCamposBusca)) {
-                registro.removido = '0'; // Marca como removido
-                fseek(arquivoDados, byteOffset, SEEK_SET);
-                escrita_registro(&registro, arquivoDados);
 
-                offsetRemovido = byteOffset;
-                cabecalhoDados.nroRegArq--;
-                cabecalhoDados.nroRegRem++;
-                break;
+        if (numCamposBusca == 1 && strcmp(camposBusca[0].nomeCampo, "id") == 0) {
+            int64_t byteOffset = buscarNoIndice(arquivoIndice, camposBusca[0].valorInt);
+            if (byteOffset != -1) {
+                fseek(arquivoDados, byteOffset, SEEK_SET);
+                leitura_registro(&registro, arquivoDados);
+                if (registro.removido == '1') {
+                    registro.removido = '0'; // Marca como removido
+                    fseek(arquivoDados, byteOffset, SEEK_SET);
+                    escrita_registro(&registro, arquivoDados);
+
+                    offsetRemovido = byteOffset;
+                    cabecalhoDados.nroRegArq--;
+                    cabecalhoDados.nroRegRem++;
+                }
+            }
+        } else {
+            fseek(arquivoDados, 25, SEEK_SET); // Vai para o início dos registros de dados
+            while (ftell(arquivoDados) < cabecalhoDados.proxByteOffset) {
+                int64_t byteOffset = ftell(arquivoDados);
+                leitura_registro(&registro, arquivoDados);
+                if (registro.removido == '1' && todosCamposCorrespondem(registro, camposBusca, numCamposBusca)) {
+                    registro.removido = '0'; // Marca como removido
+                    fseek(arquivoDados, byteOffset, SEEK_SET);
+                    escrita_registro(&registro, arquivoDados);
+
+                    offsetRemovido = byteOffset;
+                    cabecalhoDados.nroRegArq--;
+                    cabecalhoDados.nroRegRem++;
+                    break;
+                }
             }
         }
 
         if (offsetRemovido != -1) {
-            atualizarIndiceRemocao(arquivoIndice, &cabecalhoIndice, registro.id);
+            reescreverIndiceAposRemocao(arquivoIndice, &cabecalhoIndice, registro.id);
             inserirNoListaRemovidos(arquivoDados, &cabecalhoDados, offsetRemovido, registro.tamanhoRegistro + 5);
         }
+
+        for (int j = 0; j < numCamposBusca; j++) {
+            free(camposBusca[j].nomeCampo);
+            if (camposBusca[j].valorString != NULL) free(camposBusca[j].valorString);
+        }
+        free(camposBusca);
     }
 
     fseek(arquivoDados, 0, SEEK_SET);
     escrita_cabecalho(&cabecalhoDados, arquivoDados);
 
     fseek(arquivoIndice, 0, SEEK_SET);
-    escrita_cabecalho(&cabecalhoIndice, arquivoIndice);
+    escrita_cabecalho_index(&cabecalhoIndice, arquivoIndice);
 
     fclose(arquivoDados);
     fclose(arquivoIndice);

@@ -7,6 +7,8 @@ INTEGRANTES DO GRUPO:
 #include "funcoes_aux.h"
 #include "funcoes.h"
 #include "funcoes1.h"
+#include <limits.h>
+#include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -94,9 +96,6 @@ int todosCamposCorrespondem(DADOS registro, CAMPO_BUSCA camposBusca[], int numCa
 
 // Função para validar o nome do campo
 int validarNomeCampo(const char *nomeCampo) {
-    if (strlen(nomeCampo) > MAX_CAMPO) { // Tamanho do campo não pode ser maior MAX_CAMPO
-        return(0);
-    }
     for (int i = 0; nomeCampo[i] != '\0'; i++) {
         if (!isalnum(nomeCampo[i]) && nomeCampo[i] != '_') {
             return(0);
@@ -105,63 +104,64 @@ int validarNomeCampo(const char *nomeCampo) {
     return(1);
 }
 
-// Função para atualizar o índice após a remoção de um registro
-void atualizarIndiceRemocao(FILE *arquivoIndice, CABECALHO *cabecalhoIndice, int idRemovido) {
-    fseek(arquivoIndice, 25, SEEK_SET); // Vai para o início dos registros de índice
-    int id, byteOffset;
-    while (ftell(arquivoIndice) < cabecalhoIndice->proxByteOffset) {
-        fread(&id, sizeof(int), 1, arquivoIndice);
-        fread(&byteOffset, sizeof(int64_t), 1, arquivoIndice);
-        if (id == idRemovido) {
-            byteOffset = -1;
-            fseek(arquivoIndice, -sizeof(int64_t), SEEK_CUR);
-            fwrite(&byteOffset, sizeof(int64_t), 1, arquivoIndice);
-            break;
-        }
-    }
+// Função para escrita no cabecalho de index
+void escrita_cabecalho_index(CABECALHO_INDEX* cabecalhoIndex, FILE* arquivoBinarioIndex){
+    fwrite(&cabecalhoIndex->status,           sizeof(cabecalhoIndex->status),         1, arquivoBinarioIndex);
 }
 
-// Função para inserir um novo registro na lista de removidos, utilizando a estratégia Best Fit
-void inserirNoListaRemovidos(FILE *arquivoDados, CABECALHO *cabecalhoDados, int64_t offsetRemovido, int tamanhoRemovido) {
-    fseek(arquivoDados, cabecalhoDados->topo, SEEK_SET);
-    DADOS registro;
-    int64_t melhorOffset = -1;
-    int melhorTamanho = 0;
-
-    while (ftell(arquivoDados) < cabecalhoDados->proxByteOffset) {
-        int64_t byteOffset = ftell(arquivoDados);
-        leitura_registro(&registro, arquivoDados);
-        if (registro.removido == '0' && registro.tamanhoRegistro == tamanhoRemovido) {
-            melhorOffset = byteOffset;
-            melhorTamanho = registro.tamanhoRegistro;
-            break;
-        }
-        if (registro.removido == '0' && registro.tamanhoRegistro > melhorTamanho) {
-            melhorOffset = byteOffset;
-            melhorTamanho = registro.tamanhoRegistro;
-        }
-    }
-
-    if (melhorOffset != -1) {
-        fseek(arquivoDados, melhorOffset, SEEK_SET);
-        leitura_registro(&registro, arquivoDados);
-        registro.removido = '0';
-        registro.prox = cabecalhoDados->topo;
-        cabecalhoDados->topo = melhorOffset;
-        fseek(arquivoDados, melhorOffset, SEEK_SET);
-        escrita_registro(&registro, arquivoDados);
-    } else {
-        cabecalhoDados->topo = offsetRemovido;
-    }
-}
-
-// Função para escrita no cabecalho
-void escrita_cabecalho_index(CABECALHO_INDEX* cabecalho_index, FILE* nomeArquivoBinarioDeIndices){
-    fwrite(&cabecalho_index->status,           sizeof(cabecalho_index->status),         1, nomeArquivoBinarioDeIndices);
+// Função para leitura no cabecalho do index
+void leitura_cabecalho_index(CABECALHO_INDEX* cabecalhoIndex, FILE* arquivoBinarioIndex){
+    fread(&cabecalhoIndex->status,         sizeof(cabecalhoIndex->status),         1, arquivoBinarioIndex);
 }
 
 // Função para escrita do registro no arquivo de índices
-void escrita_registro_index(REGISTRO_INDEX* registro_index, FILE* nomeArquivoBinarioDeIndices) {
-    fwrite(&registro_index->id, sizeof(registro_index->id), 1, nomeArquivoBinarioDeIndices);
-    fwrite(&registro_index->byteOffset, sizeof(registro_index->byteOffset), 1, nomeArquivoBinarioDeIndices);
+void escrita_registro_index(REGISTRO_INDEX* registroIndex, FILE* arquivoBinarioIndex) {
+    fwrite(&registroIndex->id, sizeof(registroIndex->id), 1, arquivoBinarioIndex);
+    fwrite(&registroIndex->byteOffset, sizeof(registroIndex->byteOffset), 1, arquivoBinarioIndex);
+}
+
+// Função auxiliar para buscar registros no índice
+int64_t buscarNoIndice(FILE *arquivoIndice, int id) {
+    fseek(arquivoIndice, sizeof(char), SEEK_SET); // Pular o status do cabeçalho
+    REGISTRO_INDEX regIndex;
+    while (fread(&regIndex, sizeof(REGISTRO_INDEX), 1, arquivoIndice) == 1) {
+        if (regIndex.id == id) {
+            return regIndex.byteOffset;
+        }
+    }
+    return -1; // Não encontrado
+}
+
+// Função auxiliar para reescrever o índice após remoção
+void reescreverIndiceAposRemocao(FILE *arquivoIndice, CABECALHO_INDEX *cabecalhoIndice, int idRemovido) {
+    fseek(arquivoIndice, sizeof(char), SEEK_SET); // Pular o status do cabeçalho
+    FILE *tempFile = tmpfile(); // Arquivo temporário para armazenar o índice atualizado
+    if (!tempFile) {
+        printf("Falha no processamento do arquivo.\n");
+        return;
+    }
+    REGISTRO_INDEX regIndex;
+    while (fread(&regIndex, sizeof(REGISTRO_INDEX), 1, arquivoIndice) == 1) {
+        if (regIndex.id != idRemovido) {
+            fwrite(&regIndex, sizeof(REGISTRO_INDEX), 1, tempFile);
+        }
+    }
+    rewind(arquivoIndice);
+    fwrite(&cabecalhoIndice->status, sizeof(char), 1, arquivoIndice); // Reescrever o status
+    rewind(tempFile);
+    while (fread(&regIndex, sizeof(REGISTRO_INDEX), 1, tempFile) == 1) {
+        fwrite(&regIndex, sizeof(REGISTRO_INDEX), 1, arquivoIndice);
+    }
+    fclose(tempFile);
+}
+
+// Função auxiliar para inserir na lista de removidos
+void inserirNoListaRemovidos(FILE *arquivoDados, CABECALHO *cabecalhoDados, int64_t offset, int tamanho) {
+    // Mover para o offset e marcar como removido
+    fseek(arquivoDados, offset, SEEK_SET);
+    char removido = '0';
+    fwrite(&removido, sizeof(char), 1, arquivoDados);
+    fwrite(&tamanho, sizeof(int), 1, arquivoDados);
+    fwrite(&cabecalhoDados->topo, sizeof(int64_t), 1, arquivoDados);
+    cabecalhoDados->topo = offset;
 }

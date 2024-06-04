@@ -33,9 +33,9 @@
 
     // Armazena informações sobre os campos de busca
     typedef struct {
-        char nomeCampo[MAX_CAMPO];
+        char* nomeCampo;
         int valorInt;
-        char valorString[MAX_CAMPO];
+        char* valorString;
     } CAMPO_BUSCA;
 
     // Funcionalidade 1
