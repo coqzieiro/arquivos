@@ -7,47 +7,6 @@
 #include <string.h>
 #include <ctype.h>
 
-// Função para escrita no cabecalho do arquivo de índices
-void escrita_cabecalho_index(CABECALHO_INDEX* cabecalho_index, FILE* nomeArquivoBinarioDeIndices){
-    fwrite(&cabecalho_index->status,           sizeof(cabecalho_index->status),         1, nomeArquivoBinarioDeIndices);
-}
-
-// Função para escrita do registro no arquivo de índices
-void escrita_registro_index(REGISTRO_INDEX* registro_index, FILE* nomeArquivoBinarioDeIndices) {
-    fwrite(&registro_index->id, sizeof(registro_index->id), 1, nomeArquivoBinarioDeIndices);
-    fwrite(&registro_index->byteOffset, sizeof(registro_index->byteOffset), 1, nomeArquivoBinarioDeIndices);
-}
-
-void leitura_cabecalho_index(CABECALHO_INDEX* cabecalho_index, FILE* arquivoIndex) {
-    fread(&cabecalho_index->status,         sizeof(cabecalho_index->status),         1, arquivoIndex);
-}
-
-// Função para verificar se um registro corresponde a todos os campos de busca
-int todosCamposMenosIdCorrespondem(DADOS registro, CAMPO_BUSCA camposBusca[], int numCamposBusca) {
-    for (int i = 0; i < numCamposBusca; i++) {
-        if (strcmp(camposBusca[i].nomeCampo, "idade") == 0) { // Campo idade
-            if (camposBusca[i].valorInt != registro.idade) {
-                return(0);
-            }
-        } else if (strcmp(camposBusca[i].nomeCampo, "nome") == 0) { // Campo nome
-            if (strcmp(camposBusca[i].valorString, registro.nomeJogador) != 0) {
-                return(0);
-            }
-        } else if (strcmp(camposBusca[i].nomeCampo, "nacionalidade") == 0) { // Campo nacionalidade
-            if (strcmp(camposBusca[i].valorString, registro.nacionalidade) != 0) {
-                return(0);
-            }
-        } else if (strcmp(camposBusca[i].nomeCampo, "nomeClube") == 0) { // Campo nomeClube
-            if (strcmp(camposBusca[i].valorString, registro.nomeClube) != 0) {
-                return(0);
-            }
-        } else {
-            return(0);
-        }
-    }
-    return(1);
-}
-
 // Função para criar index a partir do arquivo binário
 int criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices, int opcao){
     // Abertura dos arquivos
@@ -309,71 +268,234 @@ bool remover(FILE* nomeArquivoBinario, FILE* nomeArquivoBinDeIndices, int numBus
 }
 
 // Função para inserir novo registro no arquivo binário
-void inserir(char* nomeArquivoBinario, char* nomeArquivoIndex, int numBuscas) {
-    // Abertura dos arquivos binário e de índice
-    FILE* arquivoBinario = fopen(nomeArquivoBinario, "rb+");
-    FILE* arquivoIndice = fopen(nomeArquivoIndex, "rb+");
-    if (!arquivoBinario || !arquivoIndice) {
-        printf("Falha no processamento do arquivo.\n");
-        return;
+bool inserir(FILE* nomeArquivoBinario) {
+    if (nomeArquivoBinario == NULL) {
+        fprintf(stderr, "Erro: ponteiro do arquivo é NULL\n");
+        return false;
     }
 
-    // Leitura do cabeçalho do arquivo de dados
-    CABECALHO cabecalho;
-    leitura_cabecalho(&cabecalho, arquivoBinario);
+    DADOS registro_dados;
+    InicializaRegistroJogador(&registro_dados);
+    AlocaMemoriaJogador(&registro_dados);
 
-    // Criação do novo registro
-    DADOS novoRegistro;
-    novoRegistro.removido = '0';
-    novoRegistro.prox = -1;
+    // solicita os dados do jogador
+    scanf("%d", &registro_dados.id);
 
-    for(int i=0; i < numBuscas; i++){
-        scanf("%d", &novoRegistro.id); // Leitura do campo 'id'
-        scanf("%d", &novoRegistro.idade); // Leitura do campo 'idade'
-        scan_quote_string(novoRegistro.nomeJogador); // Leitura do campo 'nomeJogador'
-        novoRegistro.tamNomeJog = strlen(novoRegistro.nomeJogador);
-        scan_quote_string(novoRegistro.nacionalidade); // Leitura do campo 'nacionalidade'
-        novoRegistro.tamNacionalidade = strlen(novoRegistro.nacionalidade);
-        scan_quote_string(novoRegistro.nomeClube); // Leitura do campo 'nomeClube'
-        novoRegistro.tamNomeClube = strlen(novoRegistro.nomeClube);
-    }
-    // Cálculo do tamanho do registro
-    novoRegistro.tamanhoRegistro = 33 + novoRegistro.tamNomeJog + novoRegistro.tamNacionalidade + novoRegistro.tamNomeClube;
-
-    int64_t offset;
-    if (cabecalho.topo == -1) {  // Não há registros removidos
-        offset = cabecalho.proxByteOffset;
-        cabecalho.proxByteOffset += novoRegistro.tamanhoRegistro + 5;
-    } else {  // Há registros removidos
-        offset = cabecalho.topo;
-        fseek(arquivoBinario, offset, SEEK_SET);
-        fread(&novoRegistro.removido, sizeof(char), 1, arquivoBinario);
-        fread(&novoRegistro.tamanhoRegistro, sizeof(int), 1, arquivoBinario);
-        fread(&novoRegistro.prox, sizeof(int64_t), 1, arquivoBinario);
-        cabecalho.topo = novoRegistro.prox;
+    char idadeStr[10];
+    scanf("%s", idadeStr);
+    if (strcmp(idadeStr, "NULO") == 0) {
+        registro_dados.idade = -1;  // representando idade nula com -1
+    } else {
+        registro_dados.idade = atoi(idadeStr);
     }
 
-    // Escrita do novo registro no arquivo de dados
-    fseek(arquivoBinario, offset, SEEK_SET);
-    escrita_registro(&novoRegistro, arquivoBinario);
+    scan_quote_string(registro_dados.nomeJogador);
+    if (strcmp(registro_dados.nomeJogador, "") == 0) {
+        free(registro_dados.nomeJogador);
+        registro_dados.nomeJogador = NULL;
+    }
 
-    // Atualização do cabeçalho
-    cabecalho.nroRegArq++;
-    if (novoRegistro.removido == '1') cabecalho.nroRegRem--;
-    escrita_cabecalho(&cabecalho, arquivoBinario);
+    scan_quote_string(registro_dados.nacionalidade);
+    if (strcmp(registro_dados.nacionalidade, "") == 0) {
+        free(registro_dados.nacionalidade);
+        registro_dados.nacionalidade = NULL;
+    }
 
-    // Atualização do índice
-    fseek(arquivoIndice, 0, SEEK_END);
-    REGISTRO_INDEX novoIndice;
-    novoIndice.id = novoRegistro.id;
-    novoIndice.byteOffset = offset;
-    escrita_registro_index(&novoIndice, arquivoIndice);
+    scan_quote_string(registro_dados.nomeClube);
+    if (strcmp(registro_dados.nomeClube, "") == 0) {
+        free(registro_dados.nomeClube);
+        registro_dados.nomeClube = NULL;
+    }
 
-    // Fechamento dos arquivos
-    fclose(arquivoBinario);
-    fclose(arquivoIndice);
+    // adiciona os valores correspondentes para os campos de tamanho variável
+    registro_dados.tamNomeJog = (registro_dados.nomeJogador != NULL) ? strlen(registro_dados.nomeJogador) : 0;
+    registro_dados.tamNacionalidade = (registro_dados.nacionalidade != NULL) ? strlen(registro_dados.nacionalidade) : 0;
+    registro_dados.tamNomeClube = (registro_dados.nomeClube != NULL) ? strlen(registro_dados.nomeClube) : 0;
+
+    // atualiza os campos secundários do registro do jogador
+    AtualizaCampos(&registro_dados);
+
+    // Debug: Printar os dados do jogador
+    /*printf("Dados do jogador:\n");
+    printf("ID: %d\n", registro_dados.id);
+    printf("Idade: %d\n", registro_dados.idade);
+    printf("Nome do jogador: %s\n", registro_dados.nomeJogador ? registro_dados.nomeJogador : "NULL");
+    printf("Nacionalidade: %s\n", registro_dados.nacionalidade ? registro_dados.nacionalidade : "NULL");
+    printf("Nome do clube: %s\n", registro_dados.nomeClube ? registro_dados.nomeClube : "NULL");
+    printf("Tamanho do registro: %d\n", registro_dados.tamanhoRegistro);
+    printf("\n\n");*/
+
+    // ordena registros removidos e armazena em uma lista
+    LISTABYTE* removidos = OrdenaRegistrosRemovidos(nomeArquivoBinario);
+
+    // encontra o melhor registro removido para reutilizar
+    long int bestFitOffset = BestFitRegister(removidos, registro_dados.tamanhoRegistro);
+
+    if (bestFitOffset != -1) {
+        // reutiliza o registro removido
+        fseek(nomeArquivoBinario, bestFitOffset, SEEK_SET);
+
+        // Debug: Registro reutilizado
+        /*printf("Reutilizando registro removido no byte offset %ld\n", bestFitOffset);
+
+        // printa os dados do registro removido que será sobrescrito
+        char removido;
+        fread(&removido, sizeof(char), 1, nomeArquivoBinario);
+        printf("Removido: %c\n", removido);
+
+        int tamRegistro;
+        fread(&tamRegistro, sizeof(int), 1, nomeArquivoBinario);
+        printf("Tamanho do registro: %d\n", tamRegistro);
+
+        long int Prox;
+        fread(&Prox, sizeof(long int), 1, nomeArquivoBinario);
+        printf("Próximo: %ld\n", Prox);
+
+        int ID;
+        fread(&ID, sizeof(int), 1, nomeArquivoBinario);
+        printf("ID: %d\n", ID);
+
+        int idade;
+        fread(&idade, sizeof(int), 1, nomeArquivoBinario);
+        printf("Idade: %d\n", idade);
+
+        int tamNomeJog;
+        fread(&tamNomeJog, sizeof(int), 1, nomeArquivoBinario);
+        char NomeJogador[100];
+        fread(NomeJogador, sizeof(char), tamNomeJog, nomeArquivoBinario);
+        NomeJogador[tamNomeJog] = '\0';
+        printf("Nome do jogador: %s\n", NomeJogador);
+
+        int tamNacionalidade;   
+        fread(&tamNacionalidade, sizeof(int), 1, nomeArquivoBinario);
+        char NomeNacionalidade[100];
+        fread(NomeNacionalidade, sizeof(char), tamNacionalidade, nomeArquivoBinario);
+        NomeNacionalidade[tamNacionalidade] = '\0';
+        printf("Nacionalidade: %s\n", NomeNacionalidade);
+
+        int tamNomeClube;
+        fread(&tamNomeClube, sizeof(int), 1, nomeArquivoBinario);
+        char NomeClube[100];    
+        fread(NomeClube, sizeof(char), tamNomeClube, nomeArquivoBinario);
+        NomeClube[tamNomeClube] = '\0';
+        printf("Nome do clube: %s\n", NomeClube);
+
+        printf("\n\n");*/
+    } else {
+        // adiciona no final do arquivo
+        fseek(nomeArquivoBinario, 0, SEEK_END);
+
+        // Debug: Registro adicionado no final
+        /*printf("Adicionando registro no final do arquivo\n");*/
+    }
+
+    // escrevendo os dados do registro no arquivo BIN
+    registro_dados.removido = '0';
+    registro_dados.prox = -1;
+
+    long int posicaoRegistro = ftell(nomeArquivoBinario); // salva a posição do novo registro
+
+    fwrite(&registro_dados.removido, sizeof(char), 1, nomeArquivoBinario);
+    fwrite(&registro_dados.tamanhoRegistro, sizeof(int), 1, nomeArquivoBinario);
+    fwrite(&registro_dados.prox, sizeof(long int), 1, nomeArquivoBinario);
+    fwrite(&registro_dados.id, sizeof(int), 1, nomeArquivoBinario);
+    fwrite(&registro_dados.idade, sizeof(int), 1, nomeArquivoBinario);
     
-    // Exibir o conteúdo do arquivo binário com a função binarioNaTela
-    binarioNaTela(nomeArquivoBinario);
-    binarioNaTela(nomeArquivoIndex);
+
+    // escreve o nome do jogador ou valor nulo
+    if (registro_dados.tamNomeJog > 0) {
+        fwrite(&registro_dados.tamNomeJog, sizeof(int), 1, nomeArquivoBinario);
+        fwrite(registro_dados.nomeJogador, sizeof(char), registro_dados.tamNomeJog, nomeArquivoBinario);
+    } else {
+        int tamNulo = 0;
+        fwrite(&tamNulo, sizeof(int), 1, nomeArquivoBinario);
+    }
+
+    // escreve a nacionalidade do jogador ou valor nulo
+    if (registro_dados.tamNacionalidade > 0) {
+        fwrite(&registro_dados.tamNacionalidade, sizeof(int), 1, nomeArquivoBinario);
+        fwrite(registro_dados.nacionalidade, sizeof(char), registro_dados.tamNacionalidade, nomeArquivoBinario);
+    } else {
+        int tamNulo = 0;
+        fwrite(&tamNulo, sizeof(int), 1, nomeArquivoBinario);
+    }
+
+    // escreve o nome do clube do jogador ou valor nulo
+    if (registro_dados.tamNomeClube > 0) {
+        fwrite(&registro_dados.tamNomeClube, sizeof(int), 1, nomeArquivoBinario);
+        fwrite(registro_dados.nomeClube, sizeof(char), registro_dados.tamNomeClube, nomeArquivoBinario);
+    } else {
+        int tamNulo = 0;
+        fwrite(&tamNulo, sizeof(int), 1, nomeArquivoBinario);
+    }
+
+    // preenche o lixo com '$' o restante do registro (se tiver espaço sobrando)
+    int totalBytes = sizeof(registro_dados.removido) + sizeof(registro_dados.tamanhoRegistro) +
+                     sizeof(registro_dados.id) + sizeof(registro_dados.idade) +
+                     sizeof(registro_dados.tamNomeJog) + registro_dados.tamNomeJog +
+                     sizeof(registro_dados.tamNacionalidade) +
+                     registro_dados.tamNacionalidade + sizeof(registro_dados.tamNomeClube) +
+                     registro_dados.tamNomeClube + sizeof(registro_dados.prox);
+
+    int bytesRestantes = registro_dados.tamanhoRegistro - totalBytes;
+
+    for (int i = 0; i < bytesRestantes; i++) {
+        char lixo = '$';
+        fwrite(&lixo, sizeof(char), 1, nomeArquivoBinario);
+    }
+
+    // Debug: Registro inserido com sucesso
+    /*printf("Registro inserido com sucesso!\n");*/
+
+    // lê o registro recém-escrito para verificar consistência
+    fseek(nomeArquivoBinario, posicaoRegistro, SEEK_SET);
+
+    /*fread(&registro_dados.removido, sizeof(char), 1, nomeArquivoBinario);
+    printf("Removido: %c\n", registro_dados.removido);
+
+    fread(&registro_dados.tamanhoRegistro, sizeof(int), 1, nomeArquivoBinario);
+    printf("Tamanho do registro: %d\n", registro_dados.tamanhoRegistro);
+
+    fread(&registro_dados.prox, sizeof(long int), 1, nomeArquivoBinario);
+    printf("Próximo: %ld\n", registro_dados.prox);
+
+    fread(&registro_dados.id, sizeof(int), 1, nomeArquivoBinario);
+    printf("ID: %d\n", registro_dados.id);
+
+    fread(&registro_dados.idade, sizeof(int), 1, nomeArquivoBinario);
+    printf("Idade: %d\n", registro_dados.idade);
+
+    fread(&registro_dados.tamNomeJog, sizeof(int), 1, nomeArquivoBinario);
+    printf("Tamanho do nome do jogador: %d\n", registro_dados.tamNomeJog);
+
+    char NomeJogador[100];
+    fread(NomeJogador, sizeof(char), registro_dados.tamNomeJog, nomeArquivoBinario);
+    NomeJogador[registro_dados.tamNomeJog] = '\0';
+    printf("Nome do jogador: %s\n", NomeJogador);
+
+    fread(&registro_dados.tamNacionalidade, sizeof(int), 1, nomeArquivoBinario);
+    printf("Tamanho da nacionalidade: %d\n", registro_dados.tamNacionalidade);
+
+    char NomeNacionalidade[100];
+    fread(NomeNacionalidade, sizeof(char), registro_dados.tamNacionalidade, nomeArquivoBinario);
+    NomeNacionalidade[registro_dados.tamNacionalidade] = '\0';
+    printf("Nacionalidade: %s\n", NomeNacionalidade);
+
+    fread(&registro_dados.tamNomeClube, sizeof(int), 1, nomeArquivoBinario);
+    printf("Tamanho do nome do clube: %d\n", registro_dados.tamNomeClube);
+
+    char NomeClube[100];    
+    fread(NomeClube, sizeof(char), registro_dados.tamNomeClube, nomeArquivoBinario);
+    NomeClube[registro_dados.tamNomeClube] = '\0';
+    printf("Nome do clube: %s\n", NomeClube);
+
+    printf("\n\n");*/
+
+    // atualiza a lista de removidos no arquivo
+    ReescreveRegistrosRemovidosBIN(nomeArquivoBinario, removidos);
+
+    DesalocaMemoriaJogador(&registro_dados);
+    LiberaLista(removidos);
+
+    return true;
 }

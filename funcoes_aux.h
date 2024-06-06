@@ -32,4 +32,12 @@
     void DesalocaMemoriaJogador(DADOS* registro);
     void LeituraParametrosBusca(int numCamposBusca, char** nomeCampo, char** valorCampo);
 
+    // Funções auxiliares de inserção
+    void AtualizaCampos(DADOS* registro);
+    LISTABYTE* OrdenaRegistrosRemovidos(FILE* arquivoBinario);
+    void sortedInsert(LISTABYTE** cabeca, LISTABYTE* novoNo);
+    long int BestFitRegister(LISTABYTE* removidos, int tamanhoRegistro);
+    bool ReescreveRegistrosRemovidosBIN(FILE* arquivoBinario, LISTABYTE* removidos);
+    void LiberaLista(LISTABYTE* cabeca);
+    
 #endif

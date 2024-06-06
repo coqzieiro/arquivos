@@ -29,6 +29,6 @@
     // Funcionalidade 5
     bool remover(FILE* nomeArquivoBinario, FILE* nomeArquivoBinDeIndices, int numBuscas);
     // Funcionalidade 6
-    void inserir(char* nomeArquivoBinario, char* nomeArquivoIndex, int numBuscas);
+    bool inserir(FILE* nomeArquivoBinario);
 
 #endif

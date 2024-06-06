@@ -6,7 +6,7 @@
 #include "funcoes_fornecidas.h"
 
 int main(void){
-    int opcao, numBuscas, numRemocoes;
+    int opcao, numBuscas, numRemocoes, numInsercoes;
     char nomeArquivoCSV[20];
     char nomeArquivoBinario[20];
     char nomeArquivoIndex[20];
@@ -68,8 +68,37 @@ int main(void){
             break;
         }
         case 6: // funcionalidade 6 (inserção de novos registros)
-            scanf("%s %s %d", nomeArquivoBinario, nomeArquivoIndex, &numBuscas);
-            inserir(nomeArquivoBinario, nomeArquivoIndex, numBuscas);
+            scanf("%s %s %d", nomeArquivoBinario, nomeArquivoIndex, &numInsercoes);
+            // abertura do arquivo
+            FILE* arquivoBinario = fopen(nomeArquivoBinario, "rb+");
+            FILE* arquivoIndex = fopen(nomeArquivoIndex, "rb+");
+
+            if (arquivoBinario == NULL) {
+                printf("Falha no processamento do arquivo.\n");
+                return 0;
+            }
+
+            if(arquivoIndex == NULL) {
+                // caso o arquivo de índice não exista, cria um novo
+                arquivoIndex = fopen(nomeArquivoIndex, "wb");
+            }
+
+            int qtdParametros;
+
+            for(int i = 0; i < numInsercoes; i++) {
+                scanf("%d", &qtdParametros);
+                inserir(arquivoBinario);
+            }
+
+            criarIndex(nomeArquivoBinario, nomeArquivoIndex, opcao);
+
+            // Fechar os arquivos
+            fclose(arquivoBinario);
+            fclose(arquivoIndex);
+
+            binarioNaTela(nomeArquivoBinario);
+            binarioNaTela(nomeArquivoIndex);
+
             break;
         default: 
             printf("Opção inválida.\n");
