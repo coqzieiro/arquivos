@@ -24,18 +24,18 @@
         int id;
         int idade;
         int tamNomeJog;
-        char nomeJogador[40];
+        char* nomeJogador;
         int tamNacionalidade;
-        char nacionalidade[40];
+        char* nacionalidade;
         int tamNomeClube;
-        char nomeClube[40];
+        char* nomeClube;
     } DADOS;
 
     // Armazena informações sobre os campos de busca
     typedef struct {
-        char* nomeCampo;
+        char nomeCampo[MAX_CAMPO];
         int valorInt;
-        char* valorString;
+        char valorString[MAX_CAMPO];
     } CAMPO_BUSCA;
 
     // Funcionalidade 1

@@ -2,10 +2,10 @@
 
     #define FUNCOES1_H
 
-    #define TAM_CAMPO 20
-    #define TAM_STRING 100
-
     #include <stdint.h>
+    #include <stdbool.h>
+
+    #define TAM_INICIAL_BYTEOFFSET 25
     
     // Registro de index do cabeçalho
     typedef struct {
@@ -18,10 +18,16 @@
         int64_t byteOffset;
     } REGISTRO_INDEX;
 
+    typedef struct ListaByteOffSet {
+        long int byteOffset;
+        int tamRegistro;
+        struct ListaByteOffSet *prox;
+    } LISTABYTE;
+
     // Funcionalidade 4
-    void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices, int opcao);
+    void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices);
     // Funcionalidade 5
-    void remover(char *nomeArquivoDados, char *nomeArquivoIndice, int numRemocoes);
+    bool remover(FILE* nomeArquivoBinario, FILE* nomeArquivoBinDeIndices, int numBuscas);
     // Funcionalidade 6
     void inserir(char* nomeArquivoBinario, char* nomeArquivoIndex, int numBuscas);
 

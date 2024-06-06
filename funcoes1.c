@@ -4,12 +4,52 @@
 #include "funcoes_fornecidas.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
 #include <string.h>
 #include <ctype.h>
 
+// Função para escrita no cabecalho do arquivo de índices
+void escrita_cabecalho_index(CABECALHO_INDEX* cabecalho_index, FILE* nomeArquivoBinarioDeIndices){
+    fwrite(&cabecalho_index->status,           sizeof(cabecalho_index->status),         1, nomeArquivoBinarioDeIndices);
+}
+
+// Função para escrita do registro no arquivo de índices
+void escrita_registro_index(REGISTRO_INDEX* registro_index, FILE* nomeArquivoBinarioDeIndices) {
+    fwrite(&registro_index->id, sizeof(registro_index->id), 1, nomeArquivoBinarioDeIndices);
+    fwrite(&registro_index->byteOffset, sizeof(registro_index->byteOffset), 1, nomeArquivoBinarioDeIndices);
+}
+
+void leitura_cabecalho_index(CABECALHO_INDEX* cabecalho_index, FILE* arquivoIndex) {
+    fread(&cabecalho_index->status,         sizeof(cabecalho_index->status),         1, arquivoIndex);
+}
+
+// Função para verificar se um registro corresponde a todos os campos de busca
+int todosCamposMenosIdCorrespondem(DADOS registro, CAMPO_BUSCA camposBusca[], int numCamposBusca) {
+    for (int i = 0; i < numCamposBusca; i++) {
+        if (strcmp(camposBusca[i].nomeCampo, "idade") == 0) { // Campo idade
+            if (camposBusca[i].valorInt != registro.idade) {
+                return(0);
+            }
+        } else if (strcmp(camposBusca[i].nomeCampo, "nome") == 0) { // Campo nome
+            if (strcmp(camposBusca[i].valorString, registro.nomeJogador) != 0) {
+                return(0);
+            }
+        } else if (strcmp(camposBusca[i].nomeCampo, "nacionalidade") == 0) { // Campo nacionalidade
+            if (strcmp(camposBusca[i].valorString, registro.nacionalidade) != 0) {
+                return(0);
+            }
+        } else if (strcmp(camposBusca[i].nomeCampo, "nomeClube") == 0) { // Campo nomeClube
+            if (strcmp(camposBusca[i].valorString, registro.nomeClube) != 0) {
+                return(0);
+            }
+        } else {
+            return(0);
+        }
+    }
+    return(1);
+}
+
 // Função para criar index a partir do arquivo binário
-void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices, int opcao){
+void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices){
     // Abertura dos arquivos
     FILE* arquivoBinario = fopen(nomeArquivoBinario, "rb");
     if (arquivoBinario == NULL){
@@ -99,152 +139,172 @@ void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices, int opc
     // Fechamento dos arquivos
     fclose(arquivoBinario);
     fclose(arquivoBinarioDeIndices);
-
-    if(opcao == 4){ // só imprime na funcionalidade 4
-        binarioNaTela(nomeArquivoBinDeIndices);
-    }
-
     return;
 }
 
-void remover(char *nomeArquivoDados, char *nomeArquivoIndice, int numRemocoes) {
-
-    FILE *arquivoDados = fopen(nomeArquivoDados, "r+b");
-    FILE *arquivoIndice = fopen(nomeArquivoIndice, "r+b");
-    if (arquivoDados == NULL || arquivoIndice == NULL) {
-        printf("Falha no processamento do arquivo.\n");
-        if (arquivoDados != NULL) fclose(arquivoDados);
-        if (arquivoIndice != NULL) fclose(arquivoIndice);
-        return;
+// remove um ou mais registros do arquivo binario BIN IndiceBIN numBuscas
+bool remover(FILE* nomeArquivoBinario, FILE* nomeArquivoBinDeIndices, int numBuscas) {
+    // Variáveis auxiliares para leitura dos parâmetros de busca
+    char** nomeCampo = (char**)malloc(numBuscas * sizeof(char*));
+    for (int i = 0; i < numBuscas; i++) {
+        nomeCampo[i] = (char*)malloc(14 * sizeof(char));
     }
 
-    CABECALHO cabecalhoDados;
-    CABECALHO_INDEX cabecalhoIndice;
-    leitura_cabecalho(&cabecalhoDados, arquivoDados);
-    leitura_cabecalho_index(&cabecalhoIndice, arquivoIndice);
-
-    if (cabecalhoDados.status == '0' || cabecalhoIndice.status == '0') {
-        printf("Falha no processamento do arquivo.\n");
-        fclose(arquivoDados);
-        fclose(arquivoIndice);
-        return;
+    char** valorCampo = (char**)malloc(numBuscas * sizeof(char*));
+    for (int i = 0; i < numBuscas; i++) {
+        valorCampo[i] = (char*)malloc(40 * sizeof(char));
     }
 
-    for (int i = 0; i < numRemocoes; i++) {
-        int numCamposBusca;
-        scanf("%d", &numCamposBusca);
+    // Lendo os parâmetros de busca
+    LeituraParametrosBusca(numBuscas, nomeCampo, valorCampo);
 
-        CAMPO_BUSCA *camposBusca = malloc(numCamposBusca * sizeof(CAMPO_BUSCA));
-        if (camposBusca == NULL) {
-            printf("Erro de alocação de memória.\n");
-            fclose(arquivoDados);
-            fclose(arquivoIndice);
-            return;
+    // Variáveis auxiliares para leitura dos registros
+    DADOS registro_dados;
+    InicializaRegistroJogador(&registro_dados);
+    AlocaMemoriaJogador(&registro_dados);
+
+    int registrosEncontrados = 0;
+    long long prox;
+
+    // Saltar o cabeçalho
+    fseek(nomeArquivoBinario, TAM_INICIAL_BYTEOFFSET, SEEK_SET);
+
+    while (fread(&prox, sizeof(long long), 1, nomeArquivoBinario) == 1) {
+        fseek(nomeArquivoBinario, -sizeof(long long), SEEK_CUR);  // Retorna para ler o registro completo
+
+        // Lê o byte offset atual
+        long int byteOffset = ftell(nomeArquivoBinario);
+
+        if (!LeDadosJogadorBin(nomeArquivoBinario, &registro_dados)) {
+            continue;
         }
 
-        for (int j = 0; j < numCamposBusca; j++) {
-            camposBusca[j].nomeCampo = malloc(TAM_CAMPO * sizeof(char));
-            if (camposBusca[j].nomeCampo == NULL) {
-                printf("Erro de alocação de memória.\n");
-                for (int k = 0; k < j; k++) {
-                    free(camposBusca[k].nomeCampo);
-                }
-                free(camposBusca);
-                fclose(arquivoDados);
-                fclose(arquivoIndice);
-                return;
-            }
+        int contadorCampo = 0;
 
-            scanf("%s", camposBusca[j].nomeCampo);
-            if (validarNomeCampo(camposBusca[j].nomeCampo) == 0) {
-                printf("Falha no processamento do arquivo.\n");
-                for (int k = 0; k <= j; k++) {
-                    free(camposBusca[k].nomeCampo);
-                }
-                free(camposBusca);
-                fclose(arquivoDados);
-                fclose(arquivoIndice);
-                return;
-            }
+        // Verificar os critérios de busca
+        for (int j = 0; j < numBuscas; j++) {
+            if (strcmp(nomeCampo[j], "id") == 0 && registro_dados.id == atoi(valorCampo[j])) {
+                contadorCampo++;
 
-            if (strcmp(camposBusca[j].nomeCampo, "id") == 0 || strcmp(camposBusca[j].nomeCampo, "idade") == 0) {
-                scanf("%d", &camposBusca[j].valorInt);
-            } else {
-                camposBusca[j].valorString = malloc(TAM_STRING * sizeof(char));
-                if (camposBusca[j].valorString == NULL) {
-                    printf("Erro de alocação de memória.\n");
-                    for (int k = 0; k <= j; k++) {
-                        free(camposBusca[k].nomeCampo);
-                        if (camposBusca[k].valorString != NULL) free(camposBusca[k].valorString);
+                // Vai no arquivo de índice e procura o byteoffset do registro do ID
+                fseek(nomeArquivoBinDeIndices, 0, SEEK_SET);
+                int id;
+                long int byteOffsetIndice;
+                while (fread(&id, sizeof(int), 1, nomeArquivoBinDeIndices) == 1) {
+                    fread(&byteOffsetIndice, sizeof(long int), 1, nomeArquivoBinDeIndices);
+                    if (id == registro_dados.id) {
+
+                        // Remoção do registro no arquivo BIN
+                        int registrosRemovidos = RetornaByteOffSetUltimoRemovido(nomeArquivoBinario);
+
+                        if (registrosRemovidos != -1) {
+                            fseek(nomeArquivoBinario, registrosRemovidos + 5, SEEK_SET);
+                            fwrite(&byteOffsetIndice, sizeof(long int), 1, nomeArquivoBinario);
+
+                            fseek(nomeArquivoBinario, byteOffsetIndice, SEEK_SET);
+                            char removido = '1';
+                            fwrite(&removido, sizeof(char), 1, nomeArquivoBinario);
+                        } else {
+                            // Vai pro byteoffset do registro que quer remover
+                            fseek(nomeArquivoBinario, byteOffsetIndice, SEEK_SET);
+
+                            // Escreve o campo removido
+                            char removido = '1';
+                            fwrite(&removido, sizeof(char), 1, nomeArquivoBinario);
+
+                            // Volta pro começo do registro pulando status e lê o topo
+                            fseek(nomeArquivoBinario, 1, SEEK_SET);
+                            long int topo;
+                            fread(&topo, sizeof(long int), 1, nomeArquivoBinario);
+
+                            // Volta para o registro que quer remover mais 5 bytes
+                            fseek(nomeArquivoBinario, byteOffsetIndice + 5, SEEK_SET);
+
+                            // Escreve o topo no campo prox
+                            fwrite(&topo, sizeof(long int), 1, nomeArquivoBinario);
+
+                            // Volta pro começo do registro
+                            fseek(nomeArquivoBinario, byteOffsetIndice, SEEK_SET);
+
+                            // Escreve o byteoffset no topo
+                            fseek(nomeArquivoBinario, 1, SEEK_SET);
+                            fwrite(&byteOffsetIndice, sizeof(long int), 1, nomeArquivoBinario);
+                        }
+                        break;
                     }
-                    free(camposBusca);
-                    fclose(arquivoDados);
-                    fclose(arquivoIndice);
-                    return;
                 }
-                scan_quote_string(camposBusca[j].valorString);
+
+            } else if (strcmp(nomeCampo[j], "idade") == 0 && registro_dados.idade == atoi(valorCampo[j])) {
+                contadorCampo++;
+            } else if (strcmp(nomeCampo[j], "nomeJogador") == 0 && registro_dados.tamNomeJog != 0 && strcmp(registro_dados.nomeJogador, valorCampo[j]) == 0) {
+                contadorCampo++;
+            } else if (strcmp(nomeCampo[j], "nacionalidade") == 0 && registro_dados.tamNacionalidade != 0 && strcmp(registro_dados.nacionalidade, valorCampo[j]) == 0) {
+                contadorCampo++;
+            } else if (strcmp(nomeCampo[j], "nomeClube") == 0 && registro_dados.tamNomeClube != 0 && strcmp(registro_dados.nomeClube, valorCampo[j]) == 0) {
+                contadorCampo++;
             }
         }
 
-        DADOS registro;
-        int64_t offsetRemovido = -1;
+        // Se todos os critérios forem atendidos
+        if (contadorCampo == numBuscas) {
+            long int MantemComoTava = ftell(nomeArquivoBinario);
 
-        if (numCamposBusca == 1 && strcmp(camposBusca[0].nomeCampo, "id") == 0) {
-            int64_t byteOffset = buscarNoIndice(arquivoIndice, camposBusca[0].valorInt);
-            if (byteOffset != -1) {
-                fseek(arquivoDados, byteOffset, SEEK_SET);
-                leitura_registro(&registro, arquivoDados);
-                if (registro.removido == '1') {
-                    registro.removido = '0'; // Marca como removido
-                    fseek(arquivoDados, byteOffset, SEEK_SET);
-                    escrita_registro(&registro, arquivoDados);
+            int registrosRemovidos = RetornaByteOffSetUltimoRemovido(nomeArquivoBinario);
 
-                    offsetRemovido = byteOffset;
-                    cabecalhoDados.nroRegArq--;
-                    cabecalhoDados.nroRegRem++;
-                }
+            if (registrosRemovidos != -1) {
+                fseek(nomeArquivoBinario, registrosRemovidos + 5, SEEK_SET);
+                fwrite(&byteOffset, sizeof(long int), 1, nomeArquivoBinario);
+
+                fseek(nomeArquivoBinario, byteOffset, SEEK_SET);
+                char removido = '1';
+                fwrite(&removido, sizeof(char), 1, nomeArquivoBinario);
+            } else {
+                // Vai pro byteoffset do registro que quer remover
+                fseek(nomeArquivoBinario, byteOffset, SEEK_SET);
+
+                // Escreve o campo removido
+                char removido = '1';
+                fwrite(&removido, sizeof(char), 1, nomeArquivoBinario);
+
+                // Volta pro começo do registro pulando status e lê o topo
+                fseek(nomeArquivoBinario, 1, SEEK_SET);
+                long int topo;
+                fread(&topo, sizeof(long int), 1, nomeArquivoBinario);
+
+                // Volta para o registro que quer remover mais 5 bytes
+                fseek(nomeArquivoBinario, byteOffset + 5, SEEK_SET);
+
+                // Escreve o topo no campo prox
+                fwrite(&topo, sizeof(long int), 1, nomeArquivoBinario);
+
+                // Volta pro começo do registro
+                fseek(nomeArquivoBinario, byteOffset, SEEK_SET);
+
+                // Escreve o byteoffset no topo
+                fseek(nomeArquivoBinario, 1, SEEK_SET);
+                fwrite(&byteOffset, sizeof(long int), 1, nomeArquivoBinario);
             }
-        } else {
-            fseek(arquivoDados, 25, SEEK_SET); // Vai para o início dos registros de dados
-            while (ftell(arquivoDados) < cabecalhoDados.proxByteOffset) {
-                int64_t byteOffset = ftell(arquivoDados);
-                leitura_registro(&registro, arquivoDados);
-                if (registro.removido == '1' && todosCamposCorrespondem(registro, camposBusca, numCamposBusca)) {
-                    registro.removido = '0'; // Marca como removido
-                    fseek(arquivoDados, byteOffset, SEEK_SET);
-                    escrita_registro(&registro, arquivoDados);
 
-                    offsetRemovido = byteOffset;
-                    cabecalhoDados.nroRegArq--;
-                    cabecalhoDados.nroRegRem++;
-                    break;
-                }
-            }
-        }
+            RetornaByteOffSetUltimoRemovido(nomeArquivoBinario);
 
-        if (offsetRemovido != -1) {
-            reescreverIndiceAposRemocao(arquivoIndice, &cabecalhoIndice, registro.id);
-            inserirNoListaRemovidos(arquivoDados, &cabecalhoDados, offsetRemovido, registro.tamanhoRegistro + 5);
-        }
+            fseek(nomeArquivoBinario, MantemComoTava, SEEK_SET);
 
-        for (int j = 0; j < numCamposBusca; j++) {
-            free(camposBusca[j].nomeCampo);
-            if (camposBusca[j].valorString != NULL) free(camposBusca[j].valorString);
+            registrosEncontrados++;
         }
-        free(camposBusca);
     }
 
-    fseek(arquivoDados, 0, SEEK_SET);
-    escrita_cabecalho(&cabecalhoDados, arquivoDados);
+    // Caso o registro não seja encontrado
+    if (registrosEncontrados == 0) {
+        LiberaMemoriaChar(nomeCampo, valorCampo, numBuscas);
+        DesalocaMemoriaJogador(&registro_dados);
+        return false;
+    }
 
-    fseek(arquivoIndice, 0, SEEK_SET);
-    escrita_cabecalho_index(&cabecalhoIndice, arquivoIndice);
+    // Libera memória alocada
+    LiberaMemoriaChar(nomeCampo, valorCampo, numBuscas);
+    DesalocaMemoriaJogador(&registro_dados);
 
-    fclose(arquivoDados);
-    fclose(arquivoIndice);
-
-    binarioNaTela(nomeArquivoDados);
-    binarioNaTela(nomeArquivoIndice);
+    return true;
 }
 
 // Função para inserir novo registro no arquivo binário

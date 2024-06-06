@@ -11,7 +11,7 @@ int main(void){
     char nomeArquivoBinario[20];
     char nomeArquivoIndex[20];
 
-    scanf("%d", &opcao); // determina qual funcionalidade irá executar
+    scanf("%d", &opcao); // Determina qual funcionalidade irá executar
 
     switch(opcao){
         case 1: // funcionalidade 1 (cria arquivo binário)
@@ -29,13 +29,43 @@ int main(void){
             break;
         case 4: // funcionalidade 4 (cria arquivo de index)
             scanf("%s %s", nomeArquivoBinario, nomeArquivoIndex);
-            criarIndex(nomeArquivoBinario, nomeArquivoIndex, opcao);
+            criarIndex(nomeArquivoBinario, nomeArquivoIndex);
+            binarioNaTela(nomeArquivoIndex);
             break;
-        case 5: // funcionalidade 5 (remoção lógica do arquivo de dados)
+        case 5: { // funcionalidade 5 (remoção lógica do arquivo de dados)
             scanf("%s %s %d", nomeArquivoBinario, nomeArquivoIndex, &numRemocoes);
-            criarIndex(nomeArquivoBinario, nomeArquivoIndex, opcao);
-            remover(nomeArquivoBinario, nomeArquivoIndex, numRemocoes);
+            // abertura do arquivo
+            FILE* arquivoBinario = fopen(nomeArquivoBinario, "rb+");
+            FILE* arquivoIndex = fopen(nomeArquivoIndex, "rb+");
+
+            if (arquivoBinario == NULL) {
+                printf("Falha no processamento do arquivo.\n");
+                return 0;
+            }
+
+            if(arquivoIndex == NULL) {
+                // caso o arquivo de índice não exista, cria um novo
+                arquivoIndex = fopen(nomeArquivoIndex, "wb");
+            }
+
+            int qtdParametros;
+
+            for(int i = 0; i < numRemocoes; i++) {
+                scanf("%d", &qtdParametros);
+                remover(arquivoBinario, arquivoIndex, qtdParametros);
+            }
+
+            criarIndex(nomeArquivoBinario, nomeArquivoIndex);
+
+                    // Fechar os arquivos
+            fclose(arquivoBinario);
+            fclose(arquivoIndex);
+
+            binarioNaTela(nomeArquivoBinario);
+            binarioNaTela(nomeArquivoIndex);
+
             break;
+        }
         case 6: // funcionalidade 6 (inserção de novos registros)
             scanf("%s %s %d", nomeArquivoBinario, nomeArquivoIndex, &numBuscas);
             inserir(nomeArquivoBinario, nomeArquivoIndex, numBuscas);
