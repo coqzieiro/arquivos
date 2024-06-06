@@ -25,7 +25,7 @@
     } LISTABYTE;
 
     // Funcionalidade 4
-    void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices, int opcao);
+    int criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices, int opcao);
     // Funcionalidade 5
     bool remover(FILE* nomeArquivoBinario, FILE* nomeArquivoBinDeIndices, int numBuscas);
     // Funcionalidade 6

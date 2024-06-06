@@ -49,19 +49,19 @@ int todosCamposMenosIdCorrespondem(DADOS registro, CAMPO_BUSCA camposBusca[], in
 }
 
 // Função para criar index a partir do arquivo binário
-void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices, int opcao){
+int criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices, int opcao){
     // Abertura dos arquivos
     FILE* arquivoBinario = fopen(nomeArquivoBinario, "rb");
     if (arquivoBinario == NULL){
         printf("Falha no processamento do arquivo.\n");
-        return;
+        return 0;
     }
 
     // Abre para escrita
     FILE* arquivoBinarioDeIndices = fopen(nomeArquivoBinDeIndices, "wb");
     if (arquivoBinarioDeIndices == NULL){
         printf("Falha no processamento do arquivo.\n");
-        return;
+        return 0;
     }
     // Inicialização do cabeçalho
     CABECALHO_INDEX cabecalho_index;
@@ -81,7 +81,7 @@ void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices, int opc
     // Verifica a consistência do arquivo
     if(statusCabecalhoArquivoBinario == '0'){
         printf("Falha no processamento do arquivo.\n");
-        return;
+        return 0;
     }
 
     // Pula o cabeçalho do arquivo de dados
@@ -140,10 +140,7 @@ void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices, int opc
     fclose(arquivoBinario);
     fclose(arquivoBinarioDeIndices);
     
-    if(opcao == 4){
-        binarioNaTela(nomeArquivoBinario);
-    }
-    return;
+    return 1;
 }
 
 // remove um ou mais registros do arquivo binario BIN IndiceBIN numBuscas

@@ -29,7 +29,9 @@ int main(void){
             break;
         case 4: // funcionalidade 4 (cria arquivo de index)
             scanf("%s %s", nomeArquivoBinario, nomeArquivoIndex);
-            criarIndex(nomeArquivoBinario, nomeArquivoIndex, opcao);
+            if (criarIndex(nomeArquivoBinario, nomeArquivoIndex, opcao)) {
+                binarioNaTela(nomeArquivoIndex); // Só imprime se criarIndex retornar sucesso
+            }
             break;
         case 5: { // funcionalidade 5 (remoção lógica do arquivo de dados)
             scanf("%s %s %d", nomeArquivoBinario, nomeArquivoIndex, &numRemocoes);
