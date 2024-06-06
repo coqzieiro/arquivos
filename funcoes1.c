@@ -49,7 +49,7 @@ int todosCamposMenosIdCorrespondem(DADOS registro, CAMPO_BUSCA camposBusca[], in
 }
 
 // Função para criar index a partir do arquivo binário
-void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices){
+void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices, int opcao){
     // Abertura dos arquivos
     FILE* arquivoBinario = fopen(nomeArquivoBinario, "rb");
     if (arquivoBinario == NULL){
@@ -139,6 +139,10 @@ void criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices){
     // Fechamento dos arquivos
     fclose(arquivoBinario);
     fclose(arquivoBinarioDeIndices);
+    
+    if(opcao == 4){
+        binarioNaTela(nomeArquivoBinario);
+    }
     return;
 }
 

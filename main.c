@@ -29,8 +29,7 @@ int main(void){
             break;
         case 4: // funcionalidade 4 (cria arquivo de index)
             scanf("%s %s", nomeArquivoBinario, nomeArquivoIndex);
-            criarIndex(nomeArquivoBinario, nomeArquivoIndex);
-            binarioNaTela(nomeArquivoIndex);
+            criarIndex(nomeArquivoBinario, nomeArquivoIndex, opcao);
             break;
         case 5: { // funcionalidade 5 (remoção lógica do arquivo de dados)
             scanf("%s %s %d", nomeArquivoBinario, nomeArquivoIndex, &numRemocoes);
@@ -55,7 +54,7 @@ int main(void){
                 remover(arquivoBinario, arquivoIndex, qtdParametros);
             }
 
-            criarIndex(nomeArquivoBinario, nomeArquivoIndex);
+            criarIndex(nomeArquivoBinario, nomeArquivoIndex, opcao);
 
                     // Fechar os arquivos
             fclose(arquivoBinario);
