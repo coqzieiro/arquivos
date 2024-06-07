@@ -153,7 +153,7 @@ bool LeDadosJogadorBin(FILE* arquivoBinario, DADOS* registro) {
     }
 
     // leitura dos jogador
-    fread(&(registro->prox), sizeof(long int), 1, arquivoBinario);
+    fread(&(registro->prox), sizeof(int64_t), 1, arquivoBinario);
     fread(&(registro->id), sizeof(int), 1, arquivoBinario);
     fread(&(registro->idade), sizeof(int), 1, arquivoBinario);
     fread(&(registro->tamNomeJog), sizeof(int), 1, arquivoBinario);
@@ -170,13 +170,13 @@ bool LeDadosJogadorBin(FILE* arquivoBinario, DADOS* registro) {
 }
 
 // Função para obter o byte offset do último registro removido
-long int RetornaByteOffSetUltimoRemovido(FILE* arquivoBinario) {
+int64_t RetornaByteOffSetUltimoRemovido(FILE* arquivoBinario) {
     if (arquivoBinario == NULL) {
         fprintf(stderr, "Erro: ponteiro do arquivo é NULL\n");
         return -1;
     }
 
-    long int ultimoRemovido = -1;
+    int64_t ultimoRemovido = -1;
 
     // pula o status
     if (fseek(arquivoBinario, 1, SEEK_SET) != 0) {
@@ -185,8 +185,8 @@ long int RetornaByteOffSetUltimoRemovido(FILE* arquivoBinario) {
     }
 
     // armazena o topo
-    long int topo;
-    if (fread(&topo, sizeof(long int), 1, arquivoBinario) != 1) {
+    int64_t topo;
+    if (fread(&topo, sizeof(int64_t), 1, arquivoBinario) != 1) {
         fprintf(stderr, "Erro: fread falhou ao ler o topo\n");
         return -1;
     }
@@ -206,7 +206,7 @@ long int RetornaByteOffSetUltimoRemovido(FILE* arquivoBinario) {
 
     DADOS registro_dados;
     AlocaMemoriaJogador(&registro_dados);
-    long int byteoffsetVDD = 0;
+    int64_t byteoffsetVDD = 0;
 
     // percorre os registros até encontrar o último removido
     while (registro_dados.prox != -1) {
@@ -214,7 +214,7 @@ long int RetornaByteOffSetUltimoRemovido(FILE* arquivoBinario) {
 
         if (fread(&registro_dados.removido, sizeof(char), 1, arquivoBinario) != 1 ||
             fread(&registro_dados.tamanhoRegistro, sizeof(int), 1, arquivoBinario) != 1 ||
-            fread(&registro_dados.prox, sizeof(long int), 1, arquivoBinario) != 1) {
+            fread(&registro_dados.prox, sizeof(int64_t), 1, arquivoBinario) != 1) {
 
             fprintf(stderr, "Erro: fread falhou ao ler o próximo registro\n");
             return -1;
@@ -354,14 +354,14 @@ bool ReescreveRegistrosRemovidosBIN(FILE* arquivoBinario, LISTABYTE* removidos) 
     if (removidos == NULL) {
         // Se a lista está vazia, marca o topo como -1
         fseek(arquivoBinario, 1, SEEK_SET);
-        long int topo = -1;
-        fwrite(&topo, sizeof(long int), 1, arquivoBinario);
+        int64_t topo = -1;
+        fwrite(&topo, sizeof(int64_t), 1, arquivoBinario);
         return true;
     }
 
     // Atualiza o topo da lista de removidos
     fseek(arquivoBinario, 1, SEEK_SET);
-    fwrite(&removidos->byteOffset, sizeof(long int), 1, arquivoBinario);
+    fwrite(&removidos->byteOffset, sizeof(int64_t), 1, arquivoBinario);
 
     LISTABYTE* atual = removidos;
     while (atual != NULL) {
@@ -372,15 +372,14 @@ bool ReescreveRegistrosRemovidosBIN(FILE* arquivoBinario, LISTABYTE* removidos) 
         fwrite(&atual->tamRegistro, sizeof(int), 1, arquivoBinario);
 
         if (atual->prox != NULL) {
-            fwrite(&atual->prox->byteOffset, sizeof(long int), 1, arquivoBinario);
+            fwrite(&atual->prox->byteOffset, sizeof(int64_t), 1, arquivoBinario);
         } else {
-            long int end_of_list = -1;
-            fwrite(&end_of_list, sizeof(long int), 1, arquivoBinario);
+            int64_t end_of_list = -1;
+            fwrite(&end_of_list, sizeof(int64_t), 1, arquivoBinario);
         }
 
         atual = atual->prox;
     }
-
     return true;
 }
 
@@ -396,26 +395,26 @@ void LiberaLista(LISTABYTE* cabeca) {
     }
 }
 
-// Encontra o melhor ajuste dos registros removidos pro novo registro
-long int BestFitRegister(LISTABYTE* removidos, int tamRegistro) {
-    long int bestFitOffset = -1;
-    int bestFitSize = INT_MAX;
+// Encontra o melhor ajuste para um novo registro com base no tamanho
+int64_t BestFitRegister(LISTABYTE* removidos, int tamanhoRegistroNovo) {
+    int64_t bestFitOffset = -1;
+    int menorDiferenca = INT_MAX;
 
-    LISTABYTE* atual = removidos;
-    while (atual != NULL) {
-        if (atual->tamRegistro >= tamRegistro &&
-            atual->tamRegistro < bestFitSize) {
-            bestFitSize = atual->tamRegistro;
-            bestFitOffset = atual->byteOffset;
+    while (removidos != NULL) {
+        if (removidos->tamRegistro >= tamanhoRegistroNovo) {
+            int diferenca = removidos->tamRegistro - tamanhoRegistroNovo;
+            if (diferenca < menorDiferenca) {
+                menorDiferenca = diferenca;
+                bestFitOffset = removidos->byteOffset;
+            }
         }
-        atual = atual->prox;
+        removidos = removidos->prox;
     }
-
     return bestFitOffset;
 }
 
 // Função para adicionar um novo registro removido na lista ordenada
-void AdicionaRegistroRemovidoOrdenado(LISTABYTE** lista, int tamanhoRegistro, long int offset) {
+void AdicionaRegistroRemovidoOrdenado(LISTABYTE** lista, int tamanhoRegistro, int64_t offset) {
     LISTABYTE* novo = (LISTABYTE*)malloc(sizeof(LISTABYTE));
     novo->tamRegistro = tamanhoRegistro;
     novo->byteOffset = offset;
@@ -437,19 +436,19 @@ void AdicionaRegistroRemovidoOrdenado(LISTABYTE** lista, int tamanhoRegistro, lo
 // Função que retorna uma lista encadeada, ordenada de maneira crescente, com todos os registros removidos 
 LISTABYTE* OrdenaRegistrosRemovidos(FILE* arquivoBinario){
     // salva a posição atual do ponteiro de arquivo
-    long int posicaoAtual = ftell(arquivoBinario);
+    int64_t posicaoAtual = ftell(arquivoBinario);
 
     LISTABYTE* listaOrdenada = NULL;
-    long int topo;
+    int64_t topo;
 
     // pula o status
     fseek(arquivoBinario, 1, SEEK_SET);
 
     // le o topo da lista de removidos
-    fread(&topo, sizeof(long int), 1, arquivoBinario);
+    fread(&topo, sizeof(int64_t), 1, arquivoBinario);
 
     if (topo == -1) {
-        fseek(arquivoBinario, posicaoAtual, SEEK_SET);  // restoura a posição original do ponteiro
+        fseek(arquivoBinario, posicaoAtual, SEEK_SET);  // restaura a posição original do ponteiro
         return listaOrdenada;
     }
 
@@ -460,7 +459,7 @@ LISTABYTE* OrdenaRegistrosRemovidos(FILE* arquivoBinario){
     while (topo != -1) {
         if (fread(&jogador.removido, sizeof(char), 1, arquivoBinario) != 1 ||
             fread(&jogador.tamanhoRegistro, sizeof(int), 1, arquivoBinario) != 1 ||
-            fread(&jogador.prox, sizeof(long int), 1, arquivoBinario) != 1) {
+            fread(&jogador.prox, sizeof(int64_t), 1, arquivoBinario) != 1) {
             fprintf(stderr, "Erro: fread falhou ao ler o próximo registro\n");
             break;
         }

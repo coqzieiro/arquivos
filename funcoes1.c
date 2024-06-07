@@ -291,18 +291,21 @@ bool inserir(FILE* nomeArquivoBinario) {
     }
 
     scan_quote_string(registro_dados.nomeJogador);
-    if (strcmp(registro_dados.nomeJogador, "NULO") == 0) {
+    if (strcmp(registro_dados.nomeJogador, "") == 0) {
         free(registro_dados.nomeJogador);
+        registro_dados.nomeJogador = NULL;
     }
 
     scan_quote_string(registro_dados.nacionalidade);
-    if (strcmp(registro_dados.nacionalidade, "NULO") == 0) {
+    if (strcmp(registro_dados.nacionalidade, "") == 0) {
         free(registro_dados.nacionalidade);
+        registro_dados.nacionalidade = NULL;
     }
 
     scan_quote_string(registro_dados.nomeClube);
-    if (strcmp(registro_dados.nomeClube, "NULO") == 0) {
+    if (strcmp(registro_dados.nomeClube, "") == 0) {
         free(registro_dados.nomeClube);
+        registro_dados.nomeClube = NULL;
     }
 
     // adiciona os valores correspondentes para os campos de tamanho variável

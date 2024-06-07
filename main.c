@@ -83,10 +83,7 @@ int main(void){
                 arquivoIndex = fopen(nomeArquivoIndex, "wb");
             }
 
-            int qtdParametros;
-
             for(int i = 0; i < numInsercoes; i++) {
-                scanf("%d", &qtdParametros);
                 inserir(arquivoBinario);
             }
 
