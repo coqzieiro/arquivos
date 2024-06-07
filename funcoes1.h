@@ -18,6 +18,7 @@
         int64_t byteOffset;
     } REGISTRO_INDEX;
 
+    // Estrutura para armazenar as listas
     typedef struct ListaByteOffSet {
         long int byteOffset;
         int tamRegistro;

@@ -39,5 +39,8 @@
     long int BestFitRegister(LISTABYTE* removidos, int tamanhoRegistro);
     bool ReescreveRegistrosRemovidosBIN(FILE* arquivoBinario, LISTABYTE* removidos);
     void LiberaLista(LISTABYTE* cabeca);
+    long int BestFitRegister(LISTABYTE* removidos, int tamRegistro);
+    LISTABYTE* OrdenaRegistrosRemovidos(FILE* nomeArquivoBinario);
+    void AdicionaRegistroRemovidoOrdenado(LISTABYTE** lista, int tamanhoRegistro, long int offset);
     
 #endif
