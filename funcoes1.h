@@ -15,14 +15,14 @@
     // Registro de index do registro
     typedef struct {
         int id;
-        long int byteOffset;
+        int64_t byteOffset;
     } REGISTRO_INDEX;
 
     // Estrutura para armazenar as listas
-    typedef struct ListaByteOffSet {
-        long int byteOffset;
+    typedef struct LISTA {
+        struct LISTA *prox;
         int tamRegistro;
-        struct ListaByteOffSet *prox;
+        int64_t byteOffset;
     } LISTABYTE;
 
     // Funcionalidade 4
@@ -30,6 +30,6 @@
     // Funcionalidade 5
     bool remover(FILE* nomeArquivoBinario, FILE* nomeArquivoBinDeIndices, int numBuscas);
     // Funcionalidade 6
-    bool inserir(FILE* nomeArquivoBinario);
+    void inserir(FILE* nomeArquivoBinario);
 
 #endif
