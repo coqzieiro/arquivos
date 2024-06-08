@@ -395,22 +395,35 @@ void LiberaLista(LISTABYTE* cabeca) {
     }
 }
 
-// Encontra o melhor ajuste para um novo registro com base no tamanho
-int64_t BestFitRegister(LISTABYTE* removidos, int tamanhoRegistroNovo) {
-    int64_t bestFitOffset = -1;
-    int menorDiferenca = INT_MAX;
+// essa função retorna o byte offset do registro a ser substituido no binario
+long int BestFitRegister(LISTABYTE** removidos, int tamRegistro, FILE* arquivoBinario) {
+    LISTABYTE* atual = *removidos;
+    LISTABYTE* anterior = NULL;
 
-    while (removidos != NULL) {
-        if (removidos->tamRegistro >= tamanhoRegistroNovo) {
-            int diferenca = removidos->tamRegistro - tamanhoRegistroNovo;
-            if (diferenca < menorDiferenca) {
-                menorDiferenca = diferenca;
-                bestFitOffset = removidos->byteOffset;
+    // percorre a lista e encontra o primeiro registro suficientemente grande
+    while (atual != NULL) {
+        if (atual->tamRegistro >= tamRegistro) {
+            long int offset = atual->byteOffset;
+
+            // remove o registro da lista
+            if (anterior == NULL) {
+                // o registro a ser removido é o primeiro da lista
+                *removidos = atual->prox;
+
+            } else {
+                // o registro a ser removido está no meio ou no final da lista
+                anterior->prox = atual->prox;
             }
+
+            free(atual);
+            return offset;
         }
-        removidos = removidos->prox;
+        anterior = atual;
+        atual = atual->prox;
     }
-    return bestFitOffset;
+
+    // caso não encontre um registro suficientemente grande
+    return -1;
 }
 
 // Função para adicionar um novo registro removido na lista ordenada
@@ -483,4 +496,114 @@ LISTABYTE* OrdenaRegistrosRemovidos(FILE* arquivoBinario){
 
     fseek(arquivoBinario, posicaoAtual, SEEK_SET);  // Restaura a posição original do ponteiro
     return listaOrdenada;
+}
+
+// le os dados do jogador pelo stdin
+bool LerInputDadosJogador(DADOS* registro) {
+    if (registro == NULL) return false;
+    // solicita os dados do jogador
+    scanf("%d", &registro->id);
+
+    char idadeStr[10];
+    scanf("%s", idadeStr);
+    if (strcmp(idadeStr, "NULO") == 0) {
+        registro->idade = -1;  // representando idade nula com -1
+    } else {
+        registro->idade = atoi(idadeStr);
+    }
+
+    scan_quote_string(registro->nomeJogador);
+    scan_quote_string(registro->nacionalidade);
+    scan_quote_string(registro->nomeClube);
+
+    return true;
+}
+
+// atualiza o tamanho das strings do jogador com base no tamanho real
+bool AtualizaTamanhoStringsJogador(DADOS* registro) {
+    if (registro == NULL) return false;
+    registro->tamNomeJog = strlen(registro->nomeJogador);
+    registro->tamNacionalidade = strlen(registro->nacionalidade);
+    registro->tamNomeClube = strlen(registro->nomeClube);
+
+    return true;
+}
+
+// verifica se devo adicionar o novo registor no final do arquivo ou reutilizar um registro existente
+// e retorna um vetor de inteiros que contem o tamanho do registro antigo e o tamanho do registro inserido
+int* ReutilizarOuAdicionarRegistro(FILE* arquivoBinario, CABECALHO* cabecalho, DADOS* registro, int bestFitOffset, LISTABYTE* removidos) {
+    // armazenamos o tamanho do registro removido)
+    int tamRegistroAntigo;
+
+    // caso exista um registro removido que possa ser reutilizado
+    if (bestFitOffset != -1) {
+        // atualiza o numero de registros removidos
+        cabecalho->nroRegRem--;
+
+        // captura o tamanho do registro removido para preencher com lixo (se
+        // necessário)
+        fseek(arquivoBinario, bestFitOffset, SEEK_SET);
+        fread(&registro->removido, sizeof(char), 1, arquivoBinario);
+        fread(&tamRegistroAntigo, sizeof(int), 1, arquivoBinario);
+
+        // reutiliza o registro removido
+        fseek(arquivoBinario, bestFitOffset, SEEK_SET);
+    } else {
+        // adiciona no final do arquivo
+        // atualiza o cabeçalho com o novo registro inserido no final do arquivo
+        cabecalho->proxByteOffset += registro->tamanhoRegistro;
+
+        // como o registro é novo, o tamanho do registro antigo é o mesmo
+        tamRegistroAntigo = registro->tamanhoRegistro;
+
+        // pular para o final do arquivo
+        fseek(arquivoBinario, 0, SEEK_END);
+    }
+
+    if (removidos && bestFitOffset == cabecalho->topo) {
+        cabecalho->topo = removidos->byteOffset;
+    }
+
+    int tamRegsInserido = registro->tamanhoRegistro;
+    registro->tamanhoRegistro = tamRegistroAntigo;
+
+    // retornar um vetor de inteiro que contem o tamanho do registro antigo e o
+    // tamanho do registro inserido
+    int* tamRegs = (int*)malloc(2 * sizeof(int));
+    tamRegs[0] = tamRegistroAntigo;
+    tamRegs[1] = tamRegsInserido;
+
+    return tamRegs;
+}
+
+// essa funcao escreve o cabecalho no arquivo binario
+bool EscreveDadosJogadorBin(FILE* arquivoBinario, DADOS* registro) {
+    // Escreve o registro no arquivo binário
+    fwrite(&registro->removido, sizeof(registro->removido), 1, arquivoBinario);
+    fwrite(&registro->tamanhoRegistro, sizeof(registro->tamanhoRegistro), 1, arquivoBinario);
+    fwrite(&registro->prox, sizeof(registro->prox), 1, arquivoBinario);
+    fwrite(&registro->id, sizeof(registro->id), 1, arquivoBinario);
+    fwrite(&registro->idade, sizeof(registro->idade), 1, arquivoBinario);
+    fwrite(&registro->tamNomeJog, sizeof(registro->tamNomeJog), 1, arquivoBinario);
+    fwrite(registro->nomeJogador, sizeof(char), registro->tamNomeJog, arquivoBinario);
+    fwrite(&registro->tamNacionalidade, sizeof(registro->tamNacionalidade), 1, arquivoBinario);
+    fwrite(registro->nacionalidade, sizeof(char), registro->tamNacionalidade, arquivoBinario);
+    fwrite(&registro->tamNomeClube, sizeof(registro->tamNomeClube), 1, arquivoBinario);
+    fwrite(registro->nomeClube, sizeof(char), registro->tamNomeClube, arquivoBinario);
+
+    return true;
+}
+
+// escreve o lixo no final do registro (quando o registro é menor que o tamanho do registro antigo que estava em seu lugar)
+bool EscreveLixoRestante(FILE* arquivoBinario, int tamRegistroAntigo, int tamRegsInserido) {
+    if (tamRegistroAntigo == tamRegsInserido) return false;
+    // preenche o lixo com '$' no restante do registro (se tiver espaço
+    // sobrando)
+    int bytesRestantes = tamRegistroAntigo - tamRegsInserido;
+    for (int i = 0; i < bytesRestantes; i++) {
+        char lixo = '$';
+        fwrite(&lixo, sizeof(char), 1, arquivoBinario);
+    }
+
+    return true;
 }

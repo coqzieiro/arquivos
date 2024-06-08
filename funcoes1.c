@@ -274,127 +274,65 @@ bool inserir(FILE* nomeArquivoBinario) {
         return false;
     }
 
+    CABECALHO cabecalho;
     DADOS registro_dados;
+    leitura_cabecalho(&cabecalho, nomeArquivoBinario);
     InicializaRegistroJogador(&registro_dados);
     AlocaMemoriaJogador(&registro_dados);
 
-    // Solicita o id
-    scanf("%d", &registro_dados.id);
+    // lê os dados do jogador pelo stdin
+    LerInputDadosJogador(&registro_dados);
 
-    char idadeStr[10];
-    // Solicita a idade
-    scanf("%s", idadeStr);
-    if (strcmp(idadeStr, "NULO") == 0) {
-        registro_dados.idade = -1;  // representando idade nula com -1
-    } else {
-        registro_dados.idade = atoi(idadeStr);
-    }
-
-    scan_quote_string(registro_dados.nomeJogador);
-    if (strcmp(registro_dados.nomeJogador, "") == 0) {
-        free(registro_dados.nomeJogador);
-        registro_dados.nomeJogador = NULL;
-    }
-
-    scan_quote_string(registro_dados.nacionalidade);
-    if (strcmp(registro_dados.nacionalidade, "") == 0) {
-        free(registro_dados.nacionalidade);
-        registro_dados.nacionalidade = NULL;
-    }
-
-    scan_quote_string(registro_dados.nomeClube);
-    if (strcmp(registro_dados.nomeClube, "") == 0) {
-        free(registro_dados.nomeClube);
-        registro_dados.nomeClube = NULL;
-    }
-
-    // adiciona os valores correspondentes para os campos de tamanho variável
-    registro_dados.tamNomeJog = (registro_dados.nomeJogador != NULL) ? strlen(registro_dados.nomeJogador) : 0;
-    registro_dados.tamNacionalidade = (registro_dados.nacionalidade != NULL) ? strlen(registro_dados.nacionalidade) : 0;
-    registro_dados.tamNomeClube = (registro_dados.nomeClube != NULL) ? strlen(registro_dados.nomeClube) : 0;
+    // atualiza o tamanho das strings do jogador
+    AtualizaTamanhoStringsJogador(&registro_dados);
 
     // atualiza os campos secundários do registro do jogador
     AtualizaCampos(&registro_dados);
 
-    // ordena registros removidos e armazena em uma lista
-    LISTABYTE* removidos = OrdenaRegistrosRemovidos(nomeArquivoBinario);
+    // ler topo do binario
+    long int topoAtualBin;
+    fseek(nomeArquivoBinario, 1, SEEK_SET);
+    fread(&topoAtualBin, sizeof(long int), 1, nomeArquivoBinario);
 
-    // encontra o melhor registro removido para reutilizar
-    long int bestFitOffset = BestFitRegister(removidos, registro_dados.tamanhoRegistro);
+    // criando a variavel que será usada para aramazenar o retorno da função
+    // BestFitRegister, caso a função não seja chamada, o valor será -1
 
-    if (bestFitOffset != -1) {
-        // reutiliza o registro removido
-        fseek(nomeArquivoBinario, bestFitOffset, SEEK_SET);
+    long int bestFitOffset = -1;
+    // cria a lista de registros removidos, mas ainda não captura os registros,
+    // porque antes vamos verificar se existe algum registro removido
 
-        // Debug: Registro reutilizado
-        printf("Reutilizando registro removido no byte offset %ld\n", bestFitOffset);
-    } else {
-        // adiciona no final do arquivo
-        fseek(nomeArquivoBinario, 0, SEEK_END);
+    LISTABYTE* removidos = NULL;
 
-        // Debug: Registro adicionado no final
-        printf("Adicionando registro no final do arquivo\n");
+    // verifica se existe algum registro removido
+    if (topoAtualBin != -1) {
+        // se sim captura os registros removidos, e ordena eles em uma lista de
+        // maneira crescente, de acordo com o tamanho do registro
+        removidos = OrdenaRegistrosRemovidos(nomeArquivoBinario); // ***************************************
+
+        if (removidos != NULL) {
+            // encontra o melhor registro removido para reutilizar
+            bestFitOffset =
+                BestFitRegister(&removidos, registro_dados.tamanhoRegistro, nomeArquivoBinario);
+        }
     }
 
-    // escrevendo os dados do registro no arquivo BIN
+    int* tamRegs = ReutilizarOuAdicionarRegistro(nomeArquivoBinario, &cabecalho, &registro_dados, bestFitOffset, removidos);
+
+    // aumenta o numero de registros no arquivo
+    cabecalho.nroRegArq++;
+
+    // setando os novos valores, agora que o registro não é mais removido
     registro_dados.removido = '0';
     registro_dados.prox = -1;
 
-    long int posicaoRegistro = ftell(nomeArquivoBinario); // salva a posição do novo registro
+    // Escreve os dados do jogador no arquivo binário
+    EscreveDadosJogadorBin(nomeArquivoBinario, &registro_dados);
 
-    fwrite(&registro_dados.removido, sizeof(char), 1, nomeArquivoBinario);
-    fwrite(&registro_dados.tamanhoRegistro, sizeof(int), 1, nomeArquivoBinario);
-    fwrite(&registro_dados.prox, sizeof(long int), 1, nomeArquivoBinario);
-    fwrite(&registro_dados.id, sizeof(int), 1, nomeArquivoBinario);
-    fwrite(&registro_dados.idade, sizeof(int), 1, nomeArquivoBinario);
+    // escrever lixo restante de acordo com o tamRegs
+    EscreveLixoRestante(nomeArquivoBinario, tamRegs[0], tamRegs[1]);
 
-    // escreve o nome do jogador ou valor nulo
-    if (registro_dados.tamNomeJog > 0) {
-        fwrite(&registro_dados.tamNomeJog, sizeof(int), 1, nomeArquivoBinario);
-        fwrite(registro_dados.nomeJogador, sizeof(char), registro_dados.tamNomeJog, nomeArquivoBinario);
-    } else {
-        int tamNulo = 0;
-        fwrite(&tamNulo, sizeof(int), 1, nomeArquivoBinario);
-    }
-
-    // escreve a nacionalidade do jogador ou valor nulo
-    if (registro_dados.tamNacionalidade > 0) {
-        fwrite(&registro_dados.tamNacionalidade, sizeof(int), 1, nomeArquivoBinario);
-        fwrite(registro_dados.nacionalidade, sizeof(char), registro_dados.tamNacionalidade, nomeArquivoBinario);
-    } else {
-        int tamNulo = 0;
-        fwrite(&tamNulo, sizeof(int), 1, nomeArquivoBinario);
-    }
-
-    // escreve o nome do clube do jogador ou valor nulo
-    if (registro_dados.tamNomeClube > 0) {
-        fwrite(&registro_dados.tamNomeClube, sizeof(int), 1, nomeArquivoBinario);
-        fwrite(registro_dados.nomeClube, sizeof(char), registro_dados.tamNomeClube, nomeArquivoBinario);
-    } else {
-        int tamNulo = 0;
-        fwrite(&tamNulo, sizeof(int), 1, nomeArquivoBinario);
-    }
-
-    // preenche o lixo com '$' o restante do registro (se tiver espaço sobrando)
-    int totalBytes = sizeof(registro_dados.removido) + sizeof(registro_dados.tamanhoRegistro) +
-                     sizeof(registro_dados.id) + sizeof(registro_dados.idade) +
-                     sizeof(registro_dados.tamNomeJog) + registro_dados.tamNomeJog +
-                     sizeof(registro_dados.tamNacionalidade) +
-                     registro_dados.tamNacionalidade + sizeof(registro_dados.tamNomeClube) +
-                     registro_dados.tamNomeClube + sizeof(registro_dados.prox);
-
-    int bytesRestantes = registro_dados.tamanhoRegistro - totalBytes;
-
-    for (int i = 0; i < bytesRestantes; i++) {
-        char lixo = '$';
-        fwrite(&lixo, sizeof(char), 1, nomeArquivoBinario);
-    }
-
-    // Debug: Registro inserido com sucesso
-    printf("Registro inserido com sucesso!\n");
-
-    // lê o registro recém-escrito para verificar consistência
-    fseek(nomeArquivoBinario, posicaoRegistro, SEEK_SET);
+    // liberar memória alocada do tamRegs
+    free(tamRegs);
 
     // atualiza a lista de removidos no arquivo
     ReescreveRegistrosRemovidosBIN(nomeArquivoBinario, removidos);
@@ -402,5 +340,8 @@ bool inserir(FILE* nomeArquivoBinario) {
     DesalocaMemoriaJogador(&registro_dados);
     LiberaLista(removidos);
 
-    return true;
+    // Atualiza e escreve o cabeçalho
+    escrita_cabecalho(&cabecalho, nomeArquivoBinario);
+    
+    return(1);
 }

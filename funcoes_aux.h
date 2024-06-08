@@ -36,11 +36,14 @@
     void AtualizaCampos(DADOS* registro);
     LISTABYTE* OrdenaRegistrosRemovidos(FILE* arquivoBinario);
     void sortedInsert(LISTABYTE** cabeca, LISTABYTE* novoNo);
-    long int BestFitRegister(LISTABYTE* removidos, int tamanhoRegistro);
+    long int BestFitRegister(LISTABYTE** removidos, int tamRegistro, FILE* arquivoBinario);
     bool ReescreveRegistrosRemovidosBIN(FILE* arquivoBinario, LISTABYTE* removidos);
     void LiberaLista(LISTABYTE* cabeca);
-    long int BestFitRegister(LISTABYTE* removidos, int tamRegistro);
     LISTABYTE* OrdenaRegistrosRemovidos(FILE* nomeArquivoBinario);
-    void AdicionaRegistroRemovidoOrdenado(LISTABYTE** lista, int tamanhoRegistro, long int offset);
+    bool LerInputDadosJogador(DADOS* registro);
+    bool AtualizaTamanhoStringsJogador(DADOS* registro);
+    int* ReutilizarOuAdicionarRegistro(FILE* arquivoBinario, CABECALHO* cabecalho, DADOS* registro, int bestFitOffset, LISTABYTE* removidos);
+    bool EscreveDadosJogadorBin(FILE* arquivoBinario, DADOS* registro);
+    bool EscreveLixoRestante(FILE* arquivoBinario, int tamRegistroAntigo, int tamRegsInserido);
     
 #endif
