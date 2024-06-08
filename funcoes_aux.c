@@ -16,6 +16,7 @@ INTEGRANTES DO GRUPO:
 
 // Função para leitura do cabeçalho
 void leitura_cabecalho(CABECALHO* cabecalho, FILE* arquivoBinario) {
+    fseek(arquivoBinario, 0, SEEK_SET);
     fread(&cabecalho->status,         sizeof(cabecalho->status),         1, arquivoBinario);
     fread(&cabecalho->topo,           sizeof(cabecalho->topo),           1, arquivoBinario);    
     fread(&cabecalho->proxByteOffset, sizeof(cabecalho->proxByteOffset), 1, arquivoBinario);  
@@ -26,23 +27,24 @@ void leitura_cabecalho(CABECALHO* cabecalho, FILE* arquivoBinario) {
 // Função para leitura do registro
 void leitura_registro(DADOS* registro, FILE* arquivoBinario){
     fread(&registro->removido,        sizeof(registro->removido),         1,                          arquivoBinario);
-    fread(&registro->tamanhoRegistro, sizeof(registro->tamanhoRegistro),  1,                          arquivoBinario);  
+    fread(&registro->tamanhoRegistro, sizeof(registro->tamanhoRegistro),  1,                          arquivoBinario);
     fread(&registro->prox,            sizeof(registro->prox),             1,                          arquivoBinario);   
     fread(&registro->id,              sizeof(registro->id),               1,                          arquivoBinario);   
     fread(&registro->idade,           sizeof(registro->idade),            1,                          arquivoBinario);
     fread(&registro->tamNomeJog,      sizeof(registro->tamNomeJog),       1,                          arquivoBinario);
-    registro->nomeJogador[registro->tamNomeJog] ='\0';     
     fread(&registro->nomeJogador,     sizeof(char),                      registro->tamNomeJog,        arquivoBinario);
+    registro->nomeJogador[registro->tamNomeJog] = '\0';     
     fread(&registro->tamNacionalidade,sizeof(registro->tamNacionalidade), 1,                          arquivoBinario);
-    registro->nacionalidade[registro->tamNacionalidade] ='\0';
     fread(&registro->nacionalidade,   sizeof(char),                      registro->tamNacionalidade,  arquivoBinario);
+    registro->nacionalidade[registro->tamNacionalidade] = '\0';
     fread(&registro->tamNomeClube,    sizeof(registro->tamNomeClube),     1,                          arquivoBinario);
-    registro->nomeClube[registro->tamNomeClube] ='\0';
     fread(&registro->nomeClube,       sizeof(char),                      registro->tamNomeClube,      arquivoBinario);
+    registro->nomeClube[registro->tamNomeClube] = '\0';
 }
 
 // Função para escrita no cabecalho
 void escrita_cabecalho(CABECALHO* cabecalho, FILE* arquivoBinario){
+    fseek(arquivoBinario, 0, SEEK_SET);
     fwrite(&cabecalho->status,           sizeof(cabecalho->status),         1, arquivoBinario);
     fwrite(&cabecalho->topo,             sizeof(cabecalho->topo),           1, arquivoBinario);
     fwrite(&cabecalho->proxByteOffset,   sizeof(cabecalho->proxByteOffset), 1, arquivoBinario);

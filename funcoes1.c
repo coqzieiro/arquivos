@@ -269,6 +269,7 @@ bool remover(FILE* nomeArquivoBinario, FILE* nomeArquivoBinDeIndices, int numBus
 
 // Função para inserir um novo registro no arquivo binário
 bool inserir(FILE* nomeArquivoBinario) {
+    
     if (nomeArquivoBinario == NULL) {
         fprintf(stderr, "Erro: ponteiro do arquivo é NULL\n");
         return false;
@@ -276,72 +277,70 @@ bool inserir(FILE* nomeArquivoBinario) {
 
     CABECALHO cabecalho;
     DADOS registro_dados;
+
+    // Leitura do cabeçalho
     leitura_cabecalho(&cabecalho, nomeArquivoBinario);
+
+    // Inicializa e aloca memória para o registro do jogador
     InicializaRegistroJogador(&registro_dados);
     AlocaMemoriaJogador(&registro_dados);
 
-    // lê os dados do jogador pelo stdin
+    // Lê os dados do jogador pelo stdin
     LerInputDadosJogador(&registro_dados);
 
-    // atualiza o tamanho das strings do jogador
+    // Atualiza o tamanho das strings do jogador
     AtualizaTamanhoStringsJogador(&registro_dados);
 
-    // atualiza os campos secundários do registro do jogador
+    // Atualiza os campos secundários do registro do jogador
     AtualizaCampos(&registro_dados);
 
-    // ler topo do binario
+    // Lê o topo do binário
     long int topoAtualBin;
     fseek(nomeArquivoBinario, 1, SEEK_SET);
     fread(&topoAtualBin, sizeof(long int), 1, nomeArquivoBinario);
 
-    // criando a variavel que será usada para aramazenar o retorno da função
-    // BestFitRegister, caso a função não seja chamada, o valor será -1
-
+    // Variável para armazenar o offset do melhor registro removido
     long int bestFitOffset = -1;
-    // cria a lista de registros removidos, mas ainda não captura os registros,
-    // porque antes vamos verificar se existe algum registro removido
-
     LISTABYTE* removidos = NULL;
 
-    // verifica se existe algum registro removido
+    // Verifica se existe algum registro removido
     if (topoAtualBin != -1) {
-        // se sim captura os registros removidos, e ordena eles em uma lista de
-        // maneira crescente, de acordo com o tamanho do registro
-        removidos = OrdenaRegistrosRemovidos(nomeArquivoBinario); // ***************************************
-
+        // Captura e ordena os registros removidos
+        removidos = OrdenaRegistrosRemovidos(nomeArquivoBinario);
         if (removidos != NULL) {
-            // encontra o melhor registro removido para reutilizar
-            bestFitOffset =
-                BestFitRegister(&removidos, registro_dados.tamanhoRegistro, nomeArquivoBinario);
+            // Encontra o melhor registro removido para reutilizar
+            bestFitOffset = BestFitRegister(&removidos, registro_dados.tamanhoRegistro, nomeArquivoBinario);
         }
     }
 
+    // Reutiliza ou adiciona o registro
     int* tamRegs = ReutilizarOuAdicionarRegistro(nomeArquivoBinario, &cabecalho, &registro_dados, bestFitOffset, removidos);
 
-    // aumenta o numero de registros no arquivo
+    // Incrementa o número de registros no arquivo
     cabecalho.nroRegArq++;
 
-    // setando os novos valores, agora que o registro não é mais removido
+    // Define os novos valores para o registro não removido
     registro_dados.removido = '0';
     registro_dados.prox = -1;
 
     // Escreve os dados do jogador no arquivo binário
     EscreveDadosJogadorBin(nomeArquivoBinario, &registro_dados);
 
-    // escrever lixo restante de acordo com o tamRegs
+    // Escreve o lixo restante de acordo com tamRegs
     EscreveLixoRestante(nomeArquivoBinario, tamRegs[0], tamRegs[1]);
 
-    // liberar memória alocada do tamRegs
+    // Libera a memória alocada para tamRegs
     free(tamRegs);
 
-    // atualiza a lista de removidos no arquivo
+    // Atualiza a lista de removidos no arquivo
     ReescreveRegistrosRemovidosBIN(nomeArquivoBinario, removidos);
 
+    // Libera a memória alocada para o registro e a lista de removidos
     DesalocaMemoriaJogador(&registro_dados);
     LiberaLista(removidos);
 
-    // Atualiza e escreve o cabeçalho
+    // Atualiza e escreve o cabeçalho no arquivo
     escrita_cabecalho(&cabecalho, nomeArquivoBinario);
-    
-    return(1);
+
+    return true;
 }
