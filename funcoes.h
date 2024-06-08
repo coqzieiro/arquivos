@@ -10,8 +10,8 @@
     // Registro de cabeçalho
     typedef struct {
         char status;
-        int64_t topo; // Garante 8 bytes
-        int64_t proxByteOffset; // Garante 8 bytes
+        int64_t topo;
+        int64_t proxByteOffset;
         int nroRegArq;
         int nroRegRem;
     } CABECALHO;
@@ -20,7 +20,7 @@
     typedef struct {
         char removido;
         int tamanhoRegistro;
-        int64_t prox; // Garante que é 8 bytes
+        int64_t prox;
         int id;
         int idade;
         int tamNomeJog;
@@ -40,8 +40,10 @@
 
     // Funcionalidade 1
     void criarArquivoBinario(char* nomeArquivoCSV, char* nomeArquivoBinario);
+
     // Funcionalidade 2
     void listarRegistros(const char* nomeArquivoBinario);
+
     // Funcionalidade 3
     void buscarRegistros(const char *arquivoEntrada, int numBuscas);
 

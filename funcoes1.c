@@ -269,18 +269,18 @@ bool remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBus
     // Caso o registro não seja encontrado
     if (numRegistrosCorrespondentes == 0) {
         LiberaMemoriaChar(campo, valorCampo, numeroDeBuscas);
-        DesAlocaMemoriaRegistro(&registro_dados);
+        DesalocaMemoriaReg(&registro_dados);
         return false;
     }
 
     // Libera memória alocada
     LiberaMemoriaChar(campo, valorCampo, numeroDeBuscas);
-    DesAlocaMemoriaRegistro(&registro_dados);
+    DesalocaMemoriaReg(&registro_dados);
 
     return true;
 }
 
-// Função que insere um novo registro no arquivo binário
+// Função que insere um novo registro no arquivo
 void inserir(FILE* nomeArquivoBinario){
     
     if(nomeArquivoBinario == NULL){
@@ -302,12 +302,12 @@ void inserir(FILE* nomeArquivoBinario){
     AlocaMemoriaRegistro(&registro_dados);
 
     // Lê os campos relacionados ao registro
-    LerInputDadosJogador(&registro_dados);
+    LeituraCampos(&registro_dados);
 
     // Atualiza o tamanho das strings
     AtualizaTamanhoStrings(&registro_dados);
 
-    // Atualiza os campos secundários do registro
+    // Atualiza os outros campos
     AtualizaCampos(&registro_dados);
 
     // Armazenar o offset registro removido
@@ -319,41 +319,43 @@ void inserir(FILE* nomeArquivoBinario){
     fseek(nomeArquivoBinario, 1, SEEK_SET);
     fread(&topo, sizeof(int64_t), 1, nomeArquivoBinario);
 
-    // Verifica se existe algum registro removido
-    if (topo != -1) {
-        // Captura e ordena os registros removidos
-        removidos = OrdenaRegistrosRemovidos(nomeArquivoBinario);
-        if (removidos != NULL) {
-            // Encontra o melhor registro removido para reutilizar
-            bestFitOffset = BestFitRegister(&removidos, registro_dados.tamanhoRegistro, nomeArquivoBinario);
+    // Se tem registro removido
+    if(topo != -1){
+
+        // Ordena os registros removidos
+        removidos = OrdenaRegistrosRem(nomeArquivoBinario);
+
+        if(removidos != NULL){
+            // Encontra o byteoffset do melhor registro removido para reutilizar
+            bestFitOffset = BestFit(&removidos, registro_dados.tamanhoRegistro, nomeArquivoBinario);
         }
     }
 
-    // Reutiliza ou adiciona o registro
-    int* tamRegs = ReutilizarOuAdicionarRegistro(nomeArquivoBinario, &cabecalho, &registro_dados, bestFitOffset, removidos);
-
-    // Incrementa o número de registros no arquivo
-    cabecalho.nroRegArq++;
+    // Adiciona o registro
+    int* tamanhoRegistro = ReutilizarRegistro(nomeArquivoBinario, &cabecalho, &registro_dados, bestFitOffset, removidos);
 
     // Define os novos valores para o registro não removido
-    registro_dados.removido = '0';
     registro_dados.prox = -1;
+    registro_dados.removido = '0';
 
-    // Escreve os dados do jogador no arquivo binário
+    // Aumenta o número de registros
+    cabecalho.nroRegArq++;
+
+    // Escreve os dados inseridos no arquivo
     EscreveDadosJogadorBin(nomeArquivoBinario, &registro_dados);
 
-    // Escreve o lixo restante de acordo com tamRegs
-    EscreveNoFinal(nomeArquivoBinario, tamRegs[0], tamRegs[1]);
+    // Escreve o lixo '$' de acordo com o tamanho do registro
+    EscreveLixo(nomeArquivoBinario, tamanhoRegistro[0], tamanhoRegistro[1]);
 
-    // Libera a memória alocada para tamRegs
-    free(tamRegs);
+    // Libera a memória alocada
+    free(tamanhoRegistro);
 
     // Atualiza a lista de removidos no arquivo
-    ReescreveRegistrosRemovidosBIN(nomeArquivoBinario, removidos);
+    ReescreveRemovidos(nomeArquivoBinario, removidos);
 
-    // Libera a memória alocada para o registro e a lista de removidos
-    DesAlocaMemoriaRegistro(&registro_dados);
-    LiberaLista(removidos);
+    // Libera a memória alocada
+    DesalocaMemoriaReg(&registro_dados);
+    DesalocaLista(removidos);
 
     // Atualiza e escreve o cabeçalho no arquivo
     EscritaCabecalho(&cabecalho, nomeArquivoBinario);

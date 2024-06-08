@@ -29,21 +29,21 @@
     bool LeDadosJogadorBin(FILE* arquivoBinario, DADOS* registro);
     int64_t RetornaByteOffSetUltimoRemovido(FILE* arquivoBinario);
     void LiberaMemoriaChar(char** nomeCampo, char** valorCampo, int numCamposBusca);
-    void DesAlocaMemoriaRegistro(DADOS* registro);
+    void DesalocaMemoriaReg(DADOS* registro);
     void LeituraParametrosBusca(int numCamposBusca, char** nomeCampo, char** valorCampo);
 
     // Funções auxiliares de inserção
     void AtualizaCampos(DADOS* registro);
-    LISTA* OrdenaRegistrosRemovidos(FILE* arquivoBinario);
-    void sortedInsert(LISTA** cabeca, LISTA* novoNo);
-    int64_t BestFitRegister(LISTA** removidos, int tamRegistro, FILE* arquivoBinario);
-    bool ReescreveRegistrosRemovidosBIN(FILE* arquivoBinario, LISTA* removidos);
-    void LiberaLista(LISTA* cabeca);
-    void LerInputDadosJogador(DADOS* registro);
+    LISTA* OrdenaRegistrosRem(FILE* arquivoBinario);
+    void InserirOrdenado(LISTA** cabeca, LISTA* novoNo);
+    int64_t BestFit(LISTA** removidos, int tamRegistro, FILE* arquivoBinario);
+    bool ReescreveRemovidos(FILE* arquivoBinario, LISTA* removidos);
+    void DesalocaLista(LISTA* cabeca);
+    void LeituraCampos(DADOS* registro);
     bool AtualizaTamanhoStrings(DADOS* registro);
-    int* ReutilizarOuAdicionarRegistro(FILE* arquivoBinario, CABECALHO* cabecalho, DADOS* registro, int bestFitOffset, LISTA* removidos);
+    int* ReutilizarRegistro(FILE* arquivoBinario, CABECALHO* cabecalho, DADOS* registro, int bestFitOffset, LISTA* removidos);
     bool EscreveDadosJogadorBin(FILE* arquivoBinario, DADOS* registro);
-    bool EscreveNoFinal(FILE* arquivoBinario, int tamRegistroAntigo, int tamRegsInserido);
+    void EscreveLixo(FILE* arquivoBinario, int tamRegistroRemovido, int tamRegistroInserido);
     void IniCabecalho(CABECALHO* cabecalho);
 
 #endif
