@@ -40,7 +40,7 @@ void criarArquivoBinario(char* nomeArquivoCSV, char* nomeArquivoBinario){
     cabecalho.nroRegRem = 0;
 
     // Escrita de cada campo do cabeçalho no arquivo binário (sequencialmente)
-    escrita_cabecalho(&cabecalho, arquivoBinario);
+    EscritaCabecalho(&cabecalho, arquivoBinario);
 
     // Variáveis para armazenar dados do registro
     DADOS registro;
@@ -120,7 +120,7 @@ void criarArquivoBinario(char* nomeArquivoCSV, char* nomeArquivoBinario){
         registro.prox = -1;
 
         // Escrita de cada campo do registro no arquivo binário (sequencialmente)
-        escrita_registro(&registro, arquivoBinario);
+        EscritaRegistro(&registro, arquivoBinario);
 
         // Atualização do offset do próximo byte
         cabecalho.proxByteOffset += registro.tamanhoRegistro;
@@ -136,7 +136,7 @@ void criarArquivoBinario(char* nomeArquivoCSV, char* nomeArquivoBinario){
     fseek(arquivoBinario, 0, SEEK_SET);
     
     // escrita do cabeçalho no arquivo binário
-    escrita_cabecalho(&cabecalho, arquivoBinario);
+    EscritaCabecalho(&cabecalho, arquivoBinario);
 
     // Fechamento dos arquivos
     fclose(arquivoCSV);
@@ -158,7 +158,7 @@ void listarRegistros(const char* nomeArquivoBinario) {
     CABECALHO cabecalho;
 
     // Leitura do cabeçalho
-    leitura_cabecalho(&cabecalho, arquivoBinario);
+    LeituraCabecalho(&cabecalho, arquivoBinario);
 
     // Se o arquivo estiver inconsistente
     if (cabecalho.status == '0') {
@@ -179,7 +179,7 @@ void listarRegistros(const char* nomeArquivoBinario) {
     for (i = 0; i < cabecalho.nroRegArq + cabecalho.nroRegRem; i++) {
 
         // Leitura do registro campo a campo
-        leitura_registro(&registro, arquivoBinario);
+        LeituraRegistro(&registro, arquivoBinario);
 
         // Se o registro não estiver removido
         if (registro.removido == '0') {
@@ -210,7 +210,7 @@ void buscarRegistros(const char *arquivoEntrada, int numBuscas) {
     CABECALHO cabecalho;
 
     // Lê o cabeçalho campo a campo
-    leitura_cabecalho(&cabecalho, entrada);
+    LeituraCabecalho(&cabecalho, entrada);
 
     // Verifica a consistência do arquivo
     if(cabecalho.status == '0'){
@@ -270,7 +270,7 @@ void buscarRegistros(const char *arquivoEntrada, int numBuscas) {
         while (!feof(entrada)) {
             
             // Leitura do registro
-            leitura_registro(&registro, entrada);
+            LeituraRegistro(&registro, entrada);
 
             if (registro.removido == '0') {
                 if (todosCamposCorrespondem(registro, camposBusca, numCamposBusca)) { // Verifica se um registro corresponde a todos os campos

@@ -15,7 +15,7 @@ INTEGRANTES DO GRUPO:
 #include <limits.h>
 
 // Função para leitura do cabeçalho
-void leitura_cabecalho(CABECALHO* cabecalho, FILE* arquivoBinario) {
+void LeituraCabecalho(CABECALHO* cabecalho, FILE* arquivoBinario) {
     fseek(arquivoBinario, 0, SEEK_SET);
     fread(&cabecalho->status,         sizeof(cabecalho->status),         1, arquivoBinario);
     fread(&cabecalho->topo,           sizeof(cabecalho->topo),           1, arquivoBinario);    
@@ -25,7 +25,7 @@ void leitura_cabecalho(CABECALHO* cabecalho, FILE* arquivoBinario) {
 }
 
 // Função para leitura do registro
-void leitura_registro(DADOS* registro, FILE* arquivoBinario){
+void LeituraRegistro(DADOS* registro, FILE* arquivoBinario){
     fread(&registro->removido,        sizeof(registro->removido),         1,                          arquivoBinario);
     fread(&registro->tamanhoRegistro, sizeof(registro->tamanhoRegistro),  1,                          arquivoBinario);
     fread(&registro->prox,            sizeof(registro->prox),             1,                          arquivoBinario);   
@@ -43,7 +43,7 @@ void leitura_registro(DADOS* registro, FILE* arquivoBinario){
 }
 
 // Função para escrita no cabecalho
-void escrita_cabecalho(CABECALHO* cabecalho, FILE* arquivoBinario){
+void EscritaCabecalho(CABECALHO* cabecalho, FILE* arquivoBinario){
     fseek(arquivoBinario, 0, SEEK_SET);
     fwrite(&cabecalho->status,           sizeof(cabecalho->status),         1, arquivoBinario);
     fwrite(&cabecalho->topo,             sizeof(cabecalho->topo),           1, arquivoBinario);
@@ -53,7 +53,7 @@ void escrita_cabecalho(CABECALHO* cabecalho, FILE* arquivoBinario){
 }
 
 // Função para escrita no registro
-void escrita_registro(DADOS* registro, FILE* arquivoBinario){
+void EscritaRegistro(DADOS* registro, FILE* arquivoBinario){
     fwrite(&registro->removido,          sizeof(registro->removido),         1,                         arquivoBinario);
     fwrite(&registro->tamanhoRegistro,   sizeof(registro->tamanhoRegistro),  1,                         arquivoBinario);
     fwrite(&registro->prox,              sizeof(registro->prox),             1,                         arquivoBinario);
@@ -111,36 +111,36 @@ int validarNomeCampo(const char *nomeCampo) {
 }
 
 // Função para escrita no cabecalho do arquivo de índices
-void escrita_cabecalho_index(CABECALHO_INDEX* cabecalho_index, FILE* nomeArquivoBinarioDeIndices){
+void EscritaCabecalho_Index(CABECALHO_INDEX* cabecalho_index, FILE* nomeArquivoBinarioDeIndices){
     fwrite(&cabecalho_index->status,           sizeof(cabecalho_index->status),         1, nomeArquivoBinarioDeIndices);
 }
 
 // Função para escrita do registro no arquivo de índices
-void escrita_registro_index(REGISTRO_INDEX* registro_index, FILE* nomeArquivoBinarioDeIndices) {
+void EscritaRegistro_Index(REGISTRO_INDEX* registro_index, FILE* nomeArquivoBinarioDeIndices) {
     fwrite(&registro_index->id, sizeof(registro_index->id), 1, nomeArquivoBinarioDeIndices);
     fwrite(&registro_index->byteOffset, sizeof(registro_index->byteOffset), 1, nomeArquivoBinarioDeIndices);
 }
 
 // Função que inicializa o registro do jogador
 void InicializaRegistroJogador(DADOS* registro) {
-    registro->removido = '0';  // 1 = registro removido, 0 = registro valido (1 byte)
-    registro->tamanhoRegistro = 0;  // tamanho do registro (4 bytes)
-    registro->prox = -1;  // byte offset do proximo registro de jogador (8 bytes)
-    registro->id = -1;    // identificador do jogador (4 bytes)
-    registro->idade = -1;          // idade do jogador (4 bytes)
-    registro->tamNomeJog = 0;      // tamanho do nome do jogador (4 bytes)
-    registro->nomeJogador = NULL;  // nome do jogador (variavel)
-    registro->tamNacionalidade = 0;  // tamanho da nacionalidade do jogador (4 bytes)
-    registro->nacionalidade = NULL;  // nacionalidade do jogador (variavel)
-    registro->tamNomeClube = 0;  // tamanho do nome do clube do jogador (4 bytes)
-    registro->nomeClube = NULL;  // nome do clube do jogador (variavel)
+    registro->removido = '0'; 
+    registro->tamanhoRegistro = 0;
+    registro->prox = -1;
+    registro->id = -1;
+    registro->idade = -1;
+    registro->tamNomeJog = 0;
+    registro->nomeJogador = NULL;
+    registro->tamNacionalidade = 0;
+    registro->nacionalidade = NULL;
+    registro->tamNomeClube = 0;
+    registro->nomeClube = NULL;
 }
 
 // Função que aloca memoria para struct jogador
-void AlocaMemoriaJogador(DADOS* registro) {
-    registro->nomeJogador = (char*)malloc(100 * sizeof(char));
-    registro->nacionalidade = (char*)malloc(100 * sizeof(char));
-    registro->nomeClube = (char*)malloc(100 * sizeof(char));
+void AlocaMemoriaRegistro(DADOS* registro) {
+    registro->nomeJogador = (char*)malloc(50*sizeof(char));
+    registro->nomeClube = (char*)malloc(50*sizeof(char));
+    registro->nacionalidade = (char*)malloc(50*sizeof(char));
 }
 
 // Função que lê os inputs do jogador
@@ -208,7 +208,7 @@ int64_t RetornaByteOffSetUltimoRemovido(FILE* arquivoBinario) {
     }
 
     DADOS registro_dados;
-    AlocaMemoriaJogador(&registro_dados);
+    AlocaMemoriaRegistro(&registro_dados);
     int64_t byteoffsetVDD = 0;
 
     // percorre os registros até encontrar o último removido
@@ -299,7 +299,7 @@ void LiberaMemoriaChar(char** nomeCampo, char** valorCampo, int numCamposBusca){
 }
 
 // Função desaloca memoria para struct jogador
-void DesalocaMemoriaJogador(DADOS* registro){
+void DesAlocaMemoriaRegistro(DADOS* registro){
     free(registro->nomeJogador);
     free(registro->nacionalidade);
     free(registro->nomeClube);
@@ -328,8 +328,8 @@ void AtualizaCampos(DADOS* registro) {
 
 // Usa o algoritmo de ordenar por inserção para ordenar a lista considerando o
 // tamanho dos registros e, em caso de empate, o menor byteOffset
-void sortedInsert(LISTABYTE** head, LISTABYTE* novoNo) {
-    LISTABYTE* atual;
+void sortedInsert(LISTA** head, LISTA* novoNo) {
+    LISTA* atual;
 
     // Caso especial para o cabeçalho da lista
     if (*head == NULL || (*head)->tamRegistro > novoNo->tamRegistro) {
@@ -338,7 +338,7 @@ void sortedInsert(LISTABYTE** head, LISTABYTE* novoNo) {
     } else {
         // Localiza o nó anterior ao ponto de inserção
         atual = *head;
-        LISTABYTE* anterior = NULL;
+        LISTA* anterior = NULL;
 
         while (atual != NULL && atual->tamRegistro <= novoNo->tamRegistro) {
             anterior = atual;
@@ -351,7 +351,7 @@ void sortedInsert(LISTABYTE** head, LISTABYTE* novoNo) {
 }
 
 // Função para reescrever os registros removidos no arquivo binário
-bool ReescreveRegistrosRemovidosBIN(FILE* arquivoBinario, LISTABYTE* removidos) {
+bool ReescreveRegistrosRemovidosBIN(FILE* arquivoBinario, LISTA* removidos) {
     if (arquivoBinario == NULL) {
         fprintf(stderr, "Erro: ponteiro do arquivo é NULL\n");
         return false;
@@ -369,7 +369,7 @@ bool ReescreveRegistrosRemovidosBIN(FILE* arquivoBinario, LISTABYTE* removidos) 
     fseek(arquivoBinario, 1, SEEK_SET);
     fwrite(&removidos->byteOffset, sizeof(int64_t), 1, arquivoBinario);
 
-    LISTABYTE* atual = removidos;
+    LISTA* atual = removidos;
     while (atual != NULL) {
         fseek(arquivoBinario, atual->byteOffset, SEEK_SET);
 
@@ -390,9 +390,9 @@ bool ReescreveRegistrosRemovidosBIN(FILE* arquivoBinario, LISTABYTE* removidos) 
 }
 
 // libera memória alocada para a lista encadeada
-void LiberaLista(LISTABYTE* cabeca) {
-    LISTABYTE* atual = cabeca;
-    LISTABYTE* next;
+void LiberaLista(LISTA* cabeca) {
+    LISTA* atual = cabeca;
+    LISTA* next;
 
     while (atual != NULL) {
         next = atual->prox;
@@ -402,9 +402,9 @@ void LiberaLista(LISTABYTE* cabeca) {
 }
 
 // essa função retorna o byte offset do registro a ser substituido no binario
-int64_t BestFitRegister(LISTABYTE** removidos, int tamRegistro, FILE* arquivoBinario) {
-    LISTABYTE* atual = *removidos;
-    LISTABYTE* anterior = NULL;
+int64_t BestFitRegister(LISTA** removidos, int tamRegistro, FILE* arquivoBinario) {
+    LISTA* atual = *removidos;
+    LISTA* anterior = NULL;
 
     // percorre a lista e encontra o primeiro registro suficientemente grande
     while (atual != NULL) {
@@ -433,11 +433,11 @@ int64_t BestFitRegister(LISTABYTE** removidos, int tamRegistro, FILE* arquivoBin
 }
 
 // Função que retorna uma lista encadeada, ordenada de maneira crescente, com todos os registros removidos 
-LISTABYTE* OrdenaRegistrosRemovidos(FILE* arquivoBinario){
+LISTA* OrdenaRegistrosRemovidos(FILE* arquivoBinario){
     // salva a posição atual do ponteiro de arquivo
     int64_t posicaoAtual = ftell(arquivoBinario);
 
-    LISTABYTE* listaOrdenada = NULL;
+    LISTA* listaOrdenada = NULL;
     int64_t topo;
 
     // pula o status
@@ -453,7 +453,7 @@ LISTABYTE* OrdenaRegistrosRemovidos(FILE* arquivoBinario){
 
     fseek(arquivoBinario, topo, SEEK_SET);
     DADOS registro_dados;
-    AlocaMemoriaJogador(&registro_dados);
+    AlocaMemoriaRegistro(&registro_dados);
 
     while (topo != -1) {
         if (fread(&registro_dados.removido, sizeof(char), 1, arquivoBinario) != 1 ||
@@ -463,7 +463,7 @@ LISTABYTE* OrdenaRegistrosRemovidos(FILE* arquivoBinario){
             break;
         }
 
-        LISTABYTE* novoNo = (LISTABYTE*)malloc(sizeof(LISTABYTE));
+        LISTA* novoNo = (LISTA*)malloc(sizeof(LISTA));
         novoNo->byteOffset = topo;
         novoNo->tamRegistro = registro_dados.tamanhoRegistro;
         novoNo->prox = NULL;
@@ -484,29 +484,39 @@ LISTABYTE* OrdenaRegistrosRemovidos(FILE* arquivoBinario){
     return listaOrdenada;
 }
 
-// le os dados do jogador pelo stdin
-bool LerInputDadosJogador(DADOS* registro) {
-    if (registro == NULL) return false;
-    // solicita os dados do jogador
-    scanf("%d", &registro->id);
+// Função que campos relacionados ao jogador
+void LerInputDadosJogador(DADOS* registro){
 
-    char idadeStr[10];
-    scanf("%s", idadeStr);
-    if (strcmp(idadeStr, "NULO") == 0) {
-        registro->idade = -1;  // representando idade nula com -1
-    } else {
-        registro->idade = atoi(idadeStr);
+    if(registro == NULL){
+        return;
     }
 
+    // Leitura id
+    scanf("%d", &registro->id);
+
+    char idade[15];
+    // Leitura idade
+    scanf("%s", idade);
+    
+    if(strcmp(idade, "NULO") == 0){
+        registro->idade = -1;
+    } else {
+        registro->idade = atoi(idade); 
+    }
+    // Leitura nomeJogador
     scan_quote_string(registro->nomeJogador);
+
+    // Leitura nacionalidade
     scan_quote_string(registro->nacionalidade);
+
+    // Leitura nomeClube
     scan_quote_string(registro->nomeClube);
 
-    return true;
+    return;
 }
 
 // atualiza o tamanho das strings do jogador com base no tamanho real
-bool AtualizaTamanhoStringsJogador(DADOS* registro) {
+bool AtualizaTamanhoStrings(DADOS* registro) {
     if (registro == NULL) return false;
     registro->tamNomeJog = strlen(registro->nomeJogador);
     registro->tamNacionalidade = strlen(registro->nacionalidade);
@@ -516,7 +526,7 @@ bool AtualizaTamanhoStringsJogador(DADOS* registro) {
 }
 
 // Função que verifica se deve adicionar ou reutilizar um registro
-int* ReutilizarOuAdicionarRegistro(FILE* arquivoBinario, CABECALHO* cabecalho, DADOS* registro, int bestFitOffset, LISTABYTE* removidos) {
+int* ReutilizarOuAdicionarRegistro(FILE* arquivoBinario, CABECALHO* cabecalho, DADOS* registro, int bestFitOffset, LISTA* removidos) {
     // armazenamos o tamanho do registro removido)
     int tamRegistroAntigo;
 
