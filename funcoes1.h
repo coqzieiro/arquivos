@@ -15,7 +15,7 @@
     // Registro de index do registro
     typedef struct {
         int id;
-        int64_t byteOffset;
+        long int byteOffset;
     } REGISTRO_INDEX;
 
     // Estrutura para armazenar as listas

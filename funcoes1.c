@@ -47,7 +47,7 @@ int criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices, int opca
     fseek(arquivoBinario, 25, SEEK_SET);
 
     // Variável para calcular o byteOffset
-    int64_t byteOffset = 25; // Começa após o cabeçalho
+    long int byteOffset = 25; // Começa após o cabeçalho
 
     // Só para o loop quando encontrar o fim do arquivo
     while(1){
@@ -274,14 +274,14 @@ bool inserir(FILE* nomeArquivoBinario) {
         fprintf(stderr, "Erro: ponteiro do arquivo é NULL\n");
         return false;
     }
-
-    CABECALHO cabecalho;
-    DADOS registro_dados;
-
+    
     // Leitura do cabeçalho
+    CABECALHO cabecalho;
+    InicializaCabecalho(&cabecalho);
     leitura_cabecalho(&cabecalho, nomeArquivoBinario);
 
     // Inicializa e aloca memória para o registro do jogador
+    DADOS registro_dados;
     InicializaRegistroJogador(&registro_dados);
     AlocaMemoriaJogador(&registro_dados);
 

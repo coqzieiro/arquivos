@@ -58,7 +58,7 @@ int main(void){
 
             criarIndex(nomeArquivoBinario, nomeArquivoIndex, opcao);
 
-                    // Fechar os arquivos
+            // Fechar os arquivos
             fclose(arquivoBinario);
             fclose(arquivoIndex);
 
@@ -82,12 +82,14 @@ int main(void){
             if(arquivoIndex == NULL) {
                 // caso o arquivo de índice não exista, cria um novo
                 arquivoIndex = fopen(nomeArquivoIndex, "wb");
+                criarIndex(nomeArquivoBinario, nomeArquivoIndex, opcao);
+
             }
 
             for(int i = 0; i < numInsercoes; i++) {
                 inserir(arquivoBinario);
             }
-            
+
             // apagar o arquivo de índice
             fclose(arquivoIndex);
             arquivoIndex = fopen(nomeArquivoIndex, "wb");

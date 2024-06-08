@@ -155,7 +155,7 @@ bool LeDadosJogadorBin(FILE* arquivoBinario, DADOS* registro) {
     }
 
     // leitura dos jogador
-    fread(&(registro->prox), sizeof(int64_t), 1, arquivoBinario);
+    fread(&(registro->prox), sizeof(long int), 1, arquivoBinario);
     fread(&(registro->id), sizeof(int), 1, arquivoBinario);
     fread(&(registro->idade), sizeof(int), 1, arquivoBinario);
     fread(&(registro->tamNomeJog), sizeof(int), 1, arquivoBinario);
@@ -172,13 +172,13 @@ bool LeDadosJogadorBin(FILE* arquivoBinario, DADOS* registro) {
 }
 
 // Função para obter o byte offset do último registro removido
-int64_t RetornaByteOffSetUltimoRemovido(FILE* arquivoBinario) {
+long int RetornaByteOffSetUltimoRemovido(FILE* arquivoBinario) {
     if (arquivoBinario == NULL) {
         fprintf(stderr, "Erro: ponteiro do arquivo é NULL\n");
         return -1;
     }
 
-    int64_t ultimoRemovido = -1;
+    long int ultimoRemovido = -1;
 
     // pula o status
     if (fseek(arquivoBinario, 1, SEEK_SET) != 0) {
@@ -187,8 +187,8 @@ int64_t RetornaByteOffSetUltimoRemovido(FILE* arquivoBinario) {
     }
 
     // armazena o topo
-    int64_t topo;
-    if (fread(&topo, sizeof(int64_t), 1, arquivoBinario) != 1) {
+    long int topo;
+    if (fread(&topo, sizeof(long int), 1, arquivoBinario) != 1) {
         fprintf(stderr, "Erro: fread falhou ao ler o topo\n");
         return -1;
     }
@@ -208,7 +208,7 @@ int64_t RetornaByteOffSetUltimoRemovido(FILE* arquivoBinario) {
 
     DADOS registro_dados;
     AlocaMemoriaJogador(&registro_dados);
-    int64_t byteoffsetVDD = 0;
+    long int byteoffsetVDD = 0;
 
     // percorre os registros até encontrar o último removido
     while (registro_dados.prox != -1) {
@@ -216,7 +216,7 @@ int64_t RetornaByteOffSetUltimoRemovido(FILE* arquivoBinario) {
 
         if (fread(&registro_dados.removido, sizeof(char), 1, arquivoBinario) != 1 ||
             fread(&registro_dados.tamanhoRegistro, sizeof(int), 1, arquivoBinario) != 1 ||
-            fread(&registro_dados.prox, sizeof(int64_t), 1, arquivoBinario) != 1) {
+            fread(&registro_dados.prox, sizeof(long int), 1, arquivoBinario) != 1) {
 
             fprintf(stderr, "Erro: fread falhou ao ler o próximo registro\n");
             return -1;
@@ -325,24 +325,27 @@ void AtualizaCampos(DADOS* registro) {
     registro->prox = -1;
 }
 
-// usa o algoritimo insertion sort para ordenar a lista considerando o tamanho dos registros
-void sortedInsert(LISTABYTE** cabeca, LISTABYTE* novoNo) {
+// Usa o algoritmo de ordenar por inserção para ordenar a lista considerando o
+// tamanho dos registros e, em caso de empate, o menor byteOffset
+void sortedInsert(LISTABYTE** head, LISTABYTE* novoNo) {
     LISTABYTE* atual;
 
-    // caso especial para o cabeçalho da lista
-    if (*cabeca == NULL ||
-        (*cabeca)->tamRegistro >= novoNo->tamRegistro) {
-        novoNo->prox = *cabeca;
-        *cabeca = novoNo;
+    // Caso especial para o cabeçalho da lista
+    if (*head == NULL || (*head)->tamRegistro > novoNo->tamRegistro) {
+        novoNo->prox = *head;
+        *head = novoNo;
     } else {
-        // localiza o nó anterior ao ponto de inserção
-        atual = *cabeca;
-        while (atual->prox != NULL &&
-               atual->prox->tamRegistro < novoNo->tamRegistro) {
+        // Localiza o nó anterior ao ponto de inserção
+        atual = *head;
+        LISTABYTE* anterior = NULL;
+
+        while (atual != NULL && atual->tamRegistro <= novoNo->tamRegistro) {
+            anterior = atual;
             atual = atual->prox;
         }
-        novoNo->prox = atual->prox;
-        atual->prox = novoNo;
+
+        novoNo->prox = anterior->prox;
+        anterior->prox = novoNo;
     }
 }
 
@@ -356,14 +359,14 @@ bool ReescreveRegistrosRemovidosBIN(FILE* arquivoBinario, LISTABYTE* removidos) 
     if (removidos == NULL) {
         // Se a lista está vazia, marca o topo como -1
         fseek(arquivoBinario, 1, SEEK_SET);
-        int64_t topo = -1;
-        fwrite(&topo, sizeof(int64_t), 1, arquivoBinario);
+        long int topo = -1;
+        fwrite(&topo, sizeof(long int), 1, arquivoBinario);
         return true;
     }
 
     // Atualiza o topo da lista de removidos
     fseek(arquivoBinario, 1, SEEK_SET);
-    fwrite(&removidos->byteOffset, sizeof(int64_t), 1, arquivoBinario);
+    fwrite(&removidos->byteOffset, sizeof(long int), 1, arquivoBinario);
 
     LISTABYTE* atual = removidos;
     while (atual != NULL) {
@@ -374,10 +377,10 @@ bool ReescreveRegistrosRemovidosBIN(FILE* arquivoBinario, LISTABYTE* removidos) 
         fwrite(&atual->tamRegistro, sizeof(int), 1, arquivoBinario);
 
         if (atual->prox != NULL) {
-            fwrite(&atual->prox->byteOffset, sizeof(int64_t), 1, arquivoBinario);
+            fwrite(&atual->prox->byteOffset, sizeof(long int), 1, arquivoBinario);
         } else {
-            int64_t end_of_list = -1;
-            fwrite(&end_of_list, sizeof(int64_t), 1, arquivoBinario);
+            long int end_of_list = -1;
+            fwrite(&end_of_list, sizeof(long int), 1, arquivoBinario);
         }
 
         atual = atual->prox;
@@ -428,39 +431,19 @@ long int BestFitRegister(LISTABYTE** removidos, int tamRegistro, FILE* arquivoBi
     return -1;
 }
 
-// Função para adicionar um novo registro removido na lista ordenada
-void AdicionaRegistroRemovidoOrdenado(LISTABYTE** lista, int tamanhoRegistro, int64_t offset) {
-    LISTABYTE* novo = (LISTABYTE*)malloc(sizeof(LISTABYTE));
-    novo->tamRegistro = tamanhoRegistro;
-    novo->byteOffset = offset;
-    novo->prox = NULL;
-
-    if (*lista == NULL || (*lista)->tamRegistro > tamanhoRegistro) {
-        novo->prox = *lista;
-        *lista = novo;
-    } else {
-        LISTABYTE* atual = *lista;
-        while (atual->prox != NULL && atual->prox->tamRegistro <= tamanhoRegistro) {
-            atual = atual->prox;
-        }
-        novo->prox = atual->prox;
-        atual->prox = novo;
-    }
-}
-
 // Função que retorna uma lista encadeada, ordenada de maneira crescente, com todos os registros removidos 
 LISTABYTE* OrdenaRegistrosRemovidos(FILE* arquivoBinario){
     // salva a posição atual do ponteiro de arquivo
-    int64_t posicaoAtual = ftell(arquivoBinario);
+    long int posicaoAtual = ftell(arquivoBinario);
 
     LISTABYTE* listaOrdenada = NULL;
-    int64_t topo;
+    long int topo;
 
     // pula o status
     fseek(arquivoBinario, 1, SEEK_SET);
 
     // le o topo da lista de removidos
-    fread(&topo, sizeof(int64_t), 1, arquivoBinario);
+    fread(&topo, sizeof(long int), 1, arquivoBinario);
 
     if (topo == -1) {
         fseek(arquivoBinario, posicaoAtual, SEEK_SET);  // restaura a posição original do ponteiro
@@ -468,33 +451,33 @@ LISTABYTE* OrdenaRegistrosRemovidos(FILE* arquivoBinario){
     }
 
     fseek(arquivoBinario, topo, SEEK_SET);
-    DADOS jogador;
-    AlocaMemoriaJogador(&jogador);
+    DADOS registro_dados;
+    AlocaMemoriaJogador(&registro_dados);
 
     while (topo != -1) {
-        if (fread(&jogador.removido, sizeof(char), 1, arquivoBinario) != 1 ||
-            fread(&jogador.tamanhoRegistro, sizeof(int), 1, arquivoBinario) != 1 ||
-            fread(&jogador.prox, sizeof(int64_t), 1, arquivoBinario) != 1) {
+        if (fread(&registro_dados.removido, sizeof(char), 1, arquivoBinario) != 1 ||
+            fread(&registro_dados.tamanhoRegistro, sizeof(int), 1, arquivoBinario) != 1 ||
+            fread(&registro_dados.prox, sizeof(long int), 1, arquivoBinario) != 1) {
             fprintf(stderr, "Erro: fread falhou ao ler o próximo registro\n");
             break;
         }
 
         LISTABYTE* novoNo = (LISTABYTE*)malloc(sizeof(LISTABYTE));
         novoNo->byteOffset = topo;
-        novoNo->tamRegistro = jogador.tamanhoRegistro;
+        novoNo->tamRegistro = registro_dados.tamanhoRegistro;
         novoNo->prox = NULL;
 
         sortedInsert(&listaOrdenada, novoNo);
 
-        topo = jogador.prox;
+        topo = registro_dados.prox;
         if (topo != -1) {
             fseek(arquivoBinario, topo, SEEK_SET);
         }
     }
 
-    free(jogador.nomeJogador);
-    free(jogador.nacionalidade);
-    free(jogador.nomeClube);
+    free(registro_dados.nomeJogador);
+    free(registro_dados.nacionalidade);
+    free(registro_dados.nomeClube);
 
     fseek(arquivoBinario, posicaoAtual, SEEK_SET);  // Restaura a posição original do ponteiro
     return listaOrdenada;
@@ -531,8 +514,7 @@ bool AtualizaTamanhoStringsJogador(DADOS* registro) {
     return true;
 }
 
-// verifica se devo adicionar o novo registor no final do arquivo ou reutilizar um registro existente
-// e retorna um vetor de inteiros que contem o tamanho do registro antigo e o tamanho do registro inserido
+// Função que verifica se deve adicionar ou reutilizar um registro
 int* ReutilizarOuAdicionarRegistro(FILE* arquivoBinario, CABECALHO* cabecalho, DADOS* registro, int bestFitOffset, LISTABYTE* removidos) {
     // armazenamos o tamanho do registro removido)
     int tamRegistroAntigo;
@@ -571,14 +553,14 @@ int* ReutilizarOuAdicionarRegistro(FILE* arquivoBinario, CABECALHO* cabecalho, D
 
     // retornar um vetor de inteiro que contem o tamanho do registro antigo e o
     // tamanho do registro inserido
-    int* tamRegs = (int*)malloc(2 * sizeof(int));
+    int* tamRegs = (int*)malloc(2*sizeof(int));
     tamRegs[0] = tamRegistroAntigo;
     tamRegs[1] = tamRegsInserido;
 
     return tamRegs;
 }
 
-// essa funcao escreve o cabecalho no arquivo binario
+// Funcao escreve o cabecalho no arquivo binario
 bool EscreveDadosJogadorBin(FILE* arquivoBinario, DADOS* registro) {
     // Escreve o registro no arquivo binário
     fwrite(&registro->removido, sizeof(registro->removido), 1, arquivoBinario);
@@ -609,3 +591,15 @@ bool EscreveLixoRestante(FILE* arquivoBinario, int tamRegistroAntigo, int tamReg
 
     return true;
 }
+
+// essa funcao inicializa o cabecalho
+void InicializaCabecalho(CABECALHO* cabecalho) {
+    cabecalho->status =
+        '0';  // 1 = arquivo consistente, 0 = arquivo inconsistente (1 byte)
+    cabecalho->topo =
+        -1;  // byte offset do primeiro registro removido (8 bytes)
+    cabecalho->proxByteOffset =
+        25;  // byte offset do proximo registro a ser inserido (8 bytes)
+    cabecalho->nroRegArq = 0;  // numero de registros no arquivo (4 bytes)
+    cabecalho->nroRegRem = 0;  // numero de registros removidos (4 bytes)
+}  // 1 + 8 + 8 + 4 + 4 = 25 bytes

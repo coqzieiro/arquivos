@@ -10,8 +10,8 @@
     // Registro de cabeçalho
     typedef struct {
         char status;
-        int64_t topo; // Garante 8 bytes
-        int64_t proxByteOffset; // Garante 8 bytes
+        long int topo; // Garante 8 bytes
+        long int proxByteOffset; // Garante 8 bytes
         int nroRegArq;
         int nroRegRem;
     } CABECALHO;
@@ -20,7 +20,7 @@
     typedef struct {
         char removido;
         int tamanhoRegistro;
-        int64_t prox; // Garante que é 8 bytes
+        long int prox; // Garante que é 8 bytes
         int id;
         int idade;
         int tamNomeJog;
