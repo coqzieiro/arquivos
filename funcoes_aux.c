@@ -138,24 +138,24 @@ void InicializaRegistroJogador(DADOS* registro) {
 
 // Função que aloca memoria para struct jogador
 void AlocaMemoriaRegistro(DADOS* registro) {
-    registro->nomeJogador = (char*)malloc(50*sizeof(char));
     registro->nomeClube = (char*)malloc(50*sizeof(char));
     registro->nacionalidade = (char*)malloc(50*sizeof(char));
+    registro->nomeJogador = (char*)malloc(50*sizeof(char));
 }
 
 // Função que lê os inputs do jogador
 bool LeDadosJogadorBin(FILE* arquivoBinario, DADOS* registro) {
-    // leitura dos jogador
-    fread(&(registro->removido), 1, 1, arquivoBinario);     // 1 byte
-    fread(&(registro->tamanhoRegistro), 4, 1, arquivoBinario);  // 4 bytes
+    // Leitura dos jogador
+    fread(&(registro->removido), 1, 1, arquivoBinario);
+    fread(&(registro->tamanhoRegistro), 4, 1, arquivoBinario);
 
-    // verifica se o registro foi removido
+    // Verifica se o registro foi removido
     if (registro->removido == '1') {
-        fseek(arquivoBinario, registro->tamanhoRegistro - 5, SEEK_CUR);  // pula os bytes restantes
+        fseek(arquivoBinario, registro->tamanhoRegistro - 5, SEEK_CUR);
         return false;
     }
 
-    // leitura dos jogador
+    // Leitura dos jogador
     fread(&(registro->prox), sizeof(int64_t), 1, arquivoBinario);
     fread(&(registro->id), sizeof(int), 1, arquivoBinario);
     fread(&(registro->idade), sizeof(int), 1, arquivoBinario);
@@ -175,35 +175,35 @@ bool LeDadosJogadorBin(FILE* arquivoBinario, DADOS* registro) {
 // Função para obter o byte offset do último registro removido
 int64_t RetornaByteOffSetUltimoRemovido(FILE* arquivoBinario) {
     if (arquivoBinario == NULL) {
-        fprintf(stderr, "Erro: ponteiro do arquivo é NULL\n");
+        printf("Erro: ponteiro do arquivo é NULL\n");
         return -1;
     }
 
     int64_t ultimoRemovido = -1;
 
-    // pula o status
+    // Pula o status
     if (fseek(arquivoBinario, 1, SEEK_SET) != 0) {
-        fprintf(stderr, "Erro: fseek falhou ao pular o status\n");
+        printf("Erro: fseek falhou ao pular o status\n");
         return -1;
     }
 
-    // armazena o topo
+    // Armazena o topo
     int64_t topo;
     if (fread(&topo, sizeof(int64_t), 1, arquivoBinario) != 1) {
-        fprintf(stderr, "Erro: fread falhou ao ler o topo\n");
+        printf("Erro: fread falhou ao ler o topo\n");
         return -1;
     }
 
-    // verifica se o topo é -1
-    if (topo == -1) {
+    // Verifica se o topo é -1
+    if(topo == -1){
         return ultimoRemovido;
     } else {
         ultimoRemovido = topo;
     }
 
-    // pula para o byte offset do topo
+    // Pula para o byte offset do topo
     if (fseek(arquivoBinario, topo, SEEK_SET) != 0) {
-        fprintf(stderr, "Erro: fseek falhou ao pular para o topo\n");
+        printf("Erro: fseek falhou ao pular para o topo\n");
         return -1;
     }
 
@@ -211,15 +211,12 @@ int64_t RetornaByteOffSetUltimoRemovido(FILE* arquivoBinario) {
     AlocaMemoriaRegistro(&registro_dados);
     int64_t byteoffsetVDD = 0;
 
-    // percorre os registros até encontrar o último removido
-    while (registro_dados.prox != -1) {
+    // Percorre os registros até encontrar o último removido
+    while(registro_dados.prox != -1){
         byteoffsetVDD = ftell(arquivoBinario);
 
-        if (fread(&registro_dados.removido, sizeof(char), 1, arquivoBinario) != 1 ||
-            fread(&registro_dados.tamanhoRegistro, sizeof(int), 1, arquivoBinario) != 1 ||
-            fread(&registro_dados.prox, sizeof(int64_t), 1, arquivoBinario) != 1) {
-
-            fprintf(stderr, "Erro: fread falhou ao ler o próximo registro\n");
+        if (fread(&registro_dados.removido, sizeof(char), 1, arquivoBinario) != 1 || fread(&registro_dados.tamanhoRegistro, sizeof(int), 1, arquivoBinario) != 1 || fread(&registro_dados.prox, sizeof(int64_t), 1, arquivoBinario) != 1) {
+            printf("Erro: fread falhou ao ler o próximo registro\n");
             return -1;
         }
 
@@ -227,63 +224,52 @@ int64_t RetornaByteOffSetUltimoRemovido(FILE* arquivoBinario) {
         fseek(arquivoBinario, 8, SEEK_CUR);
 
         if (fread(&registro_dados.tamNomeJog, sizeof(int), 1, arquivoBinario) != 1) {
-            fprintf(stderr,
-                    "Erro: fread falhou ao ler o tamanho do nome do jogador\n");
+            printf("Erro: fread falhou ao ler o tamanho do nome do jogador\n");
             return -1;
         }
 
         if (registro_dados.tamNomeJog > 0) {
-            if (fread(registro_dados.nomeJogador, sizeof(char), registro_dados.tamNomeJog,
-                      arquivoBinario) != registro_dados.tamNomeJog) {
-                fprintf(stderr,
-                        "Erro: fread falhou ao ler o nome do jogador\n");
+            if (fread(registro_dados.nomeJogador, sizeof(char), registro_dados.tamNomeJog, arquivoBinario) != registro_dados.tamNomeJog) {
+                printf("Erro: fread falhou ao ler o nome do jogador\n");
                 return -1;
             }
-            registro_dados.nomeJogador[registro_dados.tamNomeJog] =
-                '\0';  // garantindo que a string está terminada com nulo
+            registro_dados.nomeJogador[registro_dados.tamNomeJog] = '\0';
         }
 
-        if (fread(&registro_dados.tamNacionalidade, sizeof(int), 1, arquivoBinario) != 1) {
-            fprintf(stderr,
-                    "Erro: fread falhou ao ler o tamanho da nacionalidade\n");
+        if (fread(&registro_dados.tamNacionalidade, sizeof(int), 1, arquivoBinario) != 1){
+            printf("Erro: fread falhou ao ler o tamanho da nacionalidade\n");
             return -1;
         }
 
-        if (registro_dados.tamNacionalidade > 0) {
-            if (fread(registro_dados.nacionalidade, sizeof(char),
-                      registro_dados.tamNacionalidade,
-                      arquivoBinario) != registro_dados.tamNacionalidade) {
-                fprintf(stderr, "Erro: fread falhou ao ler a nacionalidade\n");
+        if (registro_dados.tamNacionalidade > 0){
+            if (fread(registro_dados.nacionalidade, sizeof(char), registro_dados.tamNacionalidade, arquivoBinario) != registro_dados.tamNacionalidade) {
+                printf("Erro: fread falhou ao ler a nacionalidade\n");
                 return -1;
             }
-            registro_dados.nacionalidade[registro_dados.tamNacionalidade] =
-                '\0';  // garantindo que a string está terminada com nulo
+            registro_dados.nacionalidade[registro_dados.tamNacionalidade] = '\0';
         }
 
         if (fread(&registro_dados.tamNomeClube, sizeof(int), 1, arquivoBinario) != 1) {
-            fprintf(stderr,
-                    "Erro: fread falhou ao ler o tamanho do nome do clube\n");
+            printf("Erro: fread falhou ao ler o tamanho do nome do clube\n");
             return -1;
         }
 
-        if (registro_dados.tamNomeClube > 0) {
-            if (fread(registro_dados.nomeClube, sizeof(char), registro_dados.tamNomeClube,
-                      arquivoBinario) != registro_dados.tamNomeClube) {
-                fprintf(stderr, "Erro: fread falhou ao ler o nome do clube\n");
+        if (registro_dados.tamNomeClube > 0){
+            if (fread(registro_dados.nomeClube, sizeof(char), registro_dados.tamNomeClube, arquivoBinario) != registro_dados.tamNomeClube) {
+                printf("Erro: fread falhou ao ler o nome do clube\n");
                 return -1;
             }
-            registro_dados.nomeClube[registro_dados.tamNomeClube] =
-                '\0';  // garantindo que a string está terminada com nulo
+            registro_dados.nomeClube[registro_dados.tamNomeClube] = '\0';
         }
 
         topo = registro_dados.prox;
         fseek(arquivoBinario, registro_dados.prox, SEEK_SET);
     }
 
-    // libera a memória alocada para os campos variáveis
-    free(registro_dados.nomeJogador);
+    // Libera a memória alocada para os campos variáveis
     free(registro_dados.nacionalidade);
     free(registro_dados.nomeClube);
+    free(registro_dados.nomeJogador);
 
     return byteoffsetVDD;
 }

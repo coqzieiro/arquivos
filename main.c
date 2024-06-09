@@ -14,26 +14,26 @@ int main(void){
     scanf("%d", &opcao); // Determina qual funcionalidade irá executar
 
     switch(opcao){
-        case 1: // funcionalidade 1 (cria arquivo binário)
+        case 1: // Funcionalidade 1 (cria arquivo binário)
             scanf("%s %s", nomeArquivoCSV, nomeArquivoBinario);
             criarArquivoBinario(nomeArquivoCSV, nomeArquivoBinario);
             binarioNaTela(nomeArquivoBinario);
             break;
-        case 2: // funcionalidade 2 (lista os registros)
+        case 2: // Funcionalidade 2 (lista os registros)
             scanf("%s", nomeArquivoBinario);
             listarRegistros(nomeArquivoBinario);
             break;
-        case 3: // funcionalidade 3 (faz a busca por campos)
+        case 3: // Funcionalidade 3 (faz a busca por campos)
             scanf("%s %d", nomeArquivoBinario, &numBuscas);
             buscarRegistros(nomeArquivoBinario, numBuscas);
             break;
-        case 4: // funcionalidade 4 (cria arquivo de index)
+        case 4: // Funcionalidade 4 (cria arquivo de index)
             scanf("%s %s", nomeArquivoBinario, nomeArquivoIndex);
             if (criarIndex(nomeArquivoBinario, nomeArquivoIndex, opcao)) {
-                binarioNaTela(nomeArquivoIndex); // Só imprime se criarIndex retornar sucesso
+                binarioNaTela(nomeArquivoIndex);
             }
             break;
-        case 5: { // funcionalidade 5 (remoção lógica do arquivo de dados)
+        case 5: { // Funcionalidade 5 (remoção lógica do arquivo de dados)
             scanf("%s %s %d", nomeArquivoBinario, nomeArquivoIndex, &numRemocoes);
             // abertura do arquivo
             FILE* arquivoBinario = fopen(nomeArquivoBinario, "rb+");
@@ -45,7 +45,7 @@ int main(void){
             }
 
             if(arquivoIndex == NULL) {
-                // caso o arquivo de índice não exista, cria um novo
+                // Caso o arquivo de índice não exista, cria um novo
                 arquivoIndex = fopen(nomeArquivoIndex, "wb");
             }
 
@@ -67,10 +67,10 @@ int main(void){
 
             break;
         }
-        case 6: // funcionalidade 6 (inserção de novos registros)
+        case 6: // Funcionalidade 6 (inserção de novos registros)
             scanf("%s %s %d", nomeArquivoBinario, nomeArquivoIndex, &numInsercoes);
             
-            // abertura do arquivo
+            // Abertura do arquivo
             FILE* arquivoBinario = fopen(nomeArquivoBinario, "rb+");
             FILE* arquivoIndex = fopen(nomeArquivoIndex, "rb+");
 
@@ -79,8 +79,8 @@ int main(void){
                 return 0;
             }
 
-            if(arquivoIndex == NULL) {
-                // caso o arquivo de índice não exista, cria um novo
+            if(arquivoIndex == NULL){
+                // Caso o arquivo de índice não exista, cria um novo
                 arquivoIndex = fopen(nomeArquivoIndex, "wb");
                 criarIndex(nomeArquivoBinario, nomeArquivoIndex, opcao);
 
@@ -90,7 +90,7 @@ int main(void){
                 inserir(arquivoBinario);
             }
 
-            // apagar o arquivo de índice
+            // Apagar o arquivo de índice
             fclose(arquivoIndex);
             arquivoIndex = fopen(nomeArquivoIndex, "wb");
 
