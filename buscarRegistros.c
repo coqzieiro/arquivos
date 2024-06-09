@@ -82,7 +82,7 @@ void buscarRegistros(const char *arquivoEntrada, int numBuscas) {
         fseek(entrada, 25, SEEK_SET);
 
         // Busca os registros correspondentes
-        while (!feof(entrada)) {
+        for (int i = 0; i < cabecalho.nroRegArq + cabecalho.nroRegRem; i++) {
             
             // Leitura do registro
             LeituraRegistroFixo(&registro, entrada);
