@@ -6,7 +6,7 @@ INTEGRANTES DO GRUPO:
 
 #include "funcionalidades.h"
 #include "definicoesTipos.h"
-#include "funcoes_aux.h"
+#include "funcoesAuxiliares.h"
 #include "funcoes_fornecidas.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,7 +30,7 @@ void listarRegistros(const char* nomeArquivoBinario) {
 
     // Se o arquivo estiver inconsistente
     if (cabecalho.status == '0') {
-        printf("Arquivo inconsistente.\n");
+        printf("Falha no processamento do arquivo.\n");
         fclose(arquivoBinario);
         return;
     }
