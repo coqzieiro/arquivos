@@ -12,14 +12,6 @@ INTEGRANTES DO GRUPO:
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <limits.h>
-
-// Função que atualiza os campos secundarios do registro do jogador
-void AtualizaCampos(DADOS* registro) {
-    registro->tamanhoRegistro = 33 + registro->tamNomeJog + registro->tamNacionalidade + registro->tamNomeClube;
-    registro->removido = '0';
-    registro->prox = -1;
-}
 
 // Função para inserir ordenado na lista
 void InserirOrdenado(LISTA** head, LISTA* novoNo) {
@@ -83,7 +75,7 @@ bool ReescreveRemovidos(FILE* arquivoBinario, LISTA* removidos) {
     return true;
 }
 
-// libera memória alocada para a lista encadeada
+// Função que libera memória alocada para a lista encadeada
 void DesalocaLista(LISTA* cabeca) {
     LISTA* atual = cabeca;
     LISTA* next;
@@ -95,8 +87,8 @@ void DesalocaLista(LISTA* cabeca) {
     }
 }
 
-// essa função retorna o byte offset do registro a ser substituido no binario
-int64_t BestFit(LISTA** removidos, int tamRegistro, FILE* arquivoBinario) {
+// Função retorna o byte offset do registro a ser substituido no binario
+int64_t MetodoBestFit(LISTA** removidos, int tamRegistro, FILE* arquivoBinario) {
     LISTA* atual = *removidos;
     LISTA* anterior = NULL;
 
@@ -230,24 +222,24 @@ bool AtualizaTamanhoStrings(DADOS* registro) {
 }
 
 // Função que verifica se deve adicionar ou reutilizar um registro
-int* ReutilizarRegistro(FILE* arquivoBinario, CABECALHO* cabecalho, DADOS* registro, int bestFitOffset, LISTA* removidos) {
+int* ReutilizarRegistro(FILE* arquivoBinario, CABECALHO* cabecalho, DADOS* registro, int MetodoBestFitOffset, LISTA* removidos) {
     
     // Tamanho do registro removido
     int tamRegRemovido;
 
     // Registro removido que pode ser usado
-    if(bestFitOffset != -1){
+    if(MetodoBestFitOffset != -1){
 
         // Atualiza os registros removidos
         cabecalho->nroRegRem--;
 
         // Pega o tamanho do registro
-        fseek(arquivoBinario, bestFitOffset, SEEK_SET);
+        fseek(arquivoBinario, MetodoBestFitOffset, SEEK_SET);
         fread(&registro->removido, sizeof(char), 1, arquivoBinario);
         fread(&tamRegRemovido, sizeof(int), 1, arquivoBinario);
 
         // Reutiliza o registro removido
-        fseek(arquivoBinario, bestFitOffset, SEEK_SET);
+        fseek(arquivoBinario, MetodoBestFitOffset, SEEK_SET);
     } else {
         // Adiciona no final do arquivo
         cabecalho->proxByteOffset += registro->tamanhoRegistro;
@@ -259,7 +251,7 @@ int* ReutilizarRegistro(FILE* arquivoBinario, CABECALHO* cabecalho, DADOS* regis
         fseek(arquivoBinario, 0, SEEK_END);
     }
 
-    if(removidos && bestFitOffset == cabecalho->topo) {
+    if(removidos && MetodoBestFitOffset == cabecalho->topo) {
         // Atualiza o topo
         cabecalho->topo = removidos->byteOffset;
     }

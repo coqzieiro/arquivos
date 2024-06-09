@@ -14,7 +14,7 @@ INTEGRANTES DO GRUPO:
 #include <ctype.h>
 
 // Função para remover os registros especificados
-bool remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBuscas) {
+void remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBuscas) {
     
     // Alocação de memória para o valor do campo
     char** valorCampo = (char**)malloc(numeroDeBuscas*sizeof(char*));
@@ -115,14 +115,22 @@ bool remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBus
                     }
                 }
 
-            } else if (strcmp(campo[j], "idade") == 0 && registro_dados.idade == atoi(valorCampo[j])) {
-                counterCampo++;
-            } else if (strcmp(campo[j], "nomeJogador") == 0 && registro_dados.tamNomeJog != 0 && strcmp(registro_dados.nomeJogador, valorCampo[j]) == 0) {
-                counterCampo++;
-            } else if (strcmp(campo[j], "nacionalidade") == 0 && registro_dados.tamNacionalidade != 0 && strcmp(registro_dados.nacionalidade, valorCampo[j]) == 0) {
-                counterCampo++;
-            } else if (strcmp(campo[j], "nomeClube") == 0 && registro_dados.tamNomeClube != 0 && strcmp(registro_dados.nomeClube, valorCampo[j]) == 0) {
-                counterCampo++;
+            } else if (strcmp(campo[j], "idade") == 0) {
+                if (registro_dados.idade == atoi(valorCampo[j])) {
+                    counterCampo++;
+                }
+            } else if (strcmp(campo[j], "nomeJogador") == 0) {
+                if (registro_dados.tamNomeJog > 0 && strcmp(registro_dados.nomeJogador, valorCampo[j]) == 0) {
+                    counterCampo++;
+                }
+            } else if (strcmp(campo[j], "nacionalidade") == 0) {
+                if (registro_dados.tamNacionalidade > 0 && strcmp(registro_dados.nacionalidade, valorCampo[j]) == 0) {
+                    counterCampo++;
+                }
+            } else if (strcmp(campo[j], "nomeClube") == 0) {
+                if (registro_dados.tamNomeClube > 0 && strcmp(registro_dados.nomeClube, valorCampo[j]) == 0) {
+                    counterCampo++;
+                }
             }
         }
 
@@ -178,16 +186,8 @@ bool remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBus
         }
     }
 
-    // Caso o registro não seja encontrado
-    if (numRegistrosCorrespondentes == 0) {
-        LiberaMemoriaChar(campo, valorCampo, numeroDeBuscas);
-        DesalocaMemoriaReg(&registro_dados);
-        return false;
-    }
-
     // Libera memória alocada
     LiberaMemoriaChar(campo, valorCampo, numeroDeBuscas);
     DesalocaMemoriaReg(&registro_dados);
 
-    return true;
 }

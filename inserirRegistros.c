@@ -44,7 +44,7 @@ void inserir(FILE* nomeArquivoBinario){
     AtualizaCampos(&registro_dados);
 
     // Armazenar o offset registro removido
-    int64_t bestFitOffset = -1;
+    int64_t MetodoBestFitOffset = -1;
     LISTA* removidos = NULL;
 
     // Leitura do topo
@@ -60,12 +60,12 @@ void inserir(FILE* nomeArquivoBinario){
 
         if(removidos != NULL){
             // Encontra o byteoffset do melhor registro removido para reutilizar
-            bestFitOffset = BestFit(&removidos, registro_dados.tamanhoRegistro, nomeArquivoBinario);
+            MetodoBestFitOffset = MetodoBestFit(&removidos, registro_dados.tamanhoRegistro, nomeArquivoBinario);
         }
     }
 
     // Adiciona o registro
-    int* tamanhoRegistro = ReutilizarRegistro(nomeArquivoBinario, &cabecalho, &registro_dados, bestFitOffset, removidos);
+    int* tamanhoRegistro = ReutilizarRegistro(nomeArquivoBinario, &cabecalho, &registro_dados, MetodoBestFitOffset, removidos);
 
     // Define os novos valores para o registro não removido
     registro_dados.prox = -1;

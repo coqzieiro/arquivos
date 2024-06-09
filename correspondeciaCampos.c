@@ -74,6 +74,13 @@ int todosCamposCorrespondemFixo(DADOS_FIXOS registro, CAMPO_BUSCA camposBusca[],
     return(1);
 }
 
+// Função que atualiza os campos secundarios do registro do jogador
+void AtualizaCampos(DADOS* registro) {
+    registro->tamanhoRegistro = 33 + registro->tamNomeJog + registro->tamNacionalidade + registro->tamNomeClube;
+    registro->removido = '0';
+    registro->prox = -1;
+}
+
 // Função para validar o nome do campo
 int validarNomeCampo(const char *nomeCampo) {
     // Tamanho do campo não deve ser maior que o limite
