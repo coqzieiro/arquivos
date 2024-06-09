@@ -41,7 +41,8 @@ int main(void){
             break;
         case 5: { // Funcionalidade 5 (remoção lógica do arquivo de dados)
             scanf("%s %s %d", nomeArquivoBinario, nomeArquivoIndex, &numRemocoes);
-            // abertura do arquivo
+            
+            // Abertura do arquivo
             FILE* arquivoBinario = fopen(nomeArquivoBinario, "rb+");
             FILE* arquivoIndex = fopen(nomeArquivoIndex, "rb+");
 
