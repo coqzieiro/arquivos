@@ -75,7 +75,7 @@ void inserir(FILE* nomeArquivoBinario){
     cabecalho.nroRegArq++;
 
     // Escreve os dados inseridos no arquivo
-    EscreveDadosJogadorBin(nomeArquivoBinario, &registro_dados);
+    EscreveRegistroInsercao(nomeArquivoBinario, &registro_dados);
 
     // Escreve o lixo '$' de acordo com o tamanho do registro
     EscreveLixo(nomeArquivoBinario, tamanhoRegistro[0], tamanhoRegistro[1]);

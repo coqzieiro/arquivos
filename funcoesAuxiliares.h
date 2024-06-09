@@ -46,12 +46,12 @@ INTEGRANTES DO GRUPO:
     LISTA* OrdenaRegistrosRem(FILE* arquivoBinario);
     void InserirOrdenado(LISTA** cabeca, LISTA* novoNo);
     int64_t MetodoBestFit(LISTA** removidos, int tamRegistro, FILE* arquivoBinario);
-    bool ReescreveRemovidos(FILE* arquivoBinario, LISTA* removidos);
+    int ReescreveRemovidos(FILE* arquivoBinario, LISTA* removidos);
     void DesalocaLista(LISTA* cabeca);
     void LeituraCampos(DADOS* registro);
-    bool AtualizaTamanhoStrings(DADOS* registro);
+    int AtualizaTamanhoStrings(DADOS* registro);
     int* ReutilizarRegistro(FILE* arquivoBinario, CABECALHO* cabecalho, DADOS* registro, int MetodoBestFitOffset, LISTA* removidos);
-    bool EscreveDadosJogadorBin(FILE* arquivoBinario, DADOS* registro);
+    void EscreveRegistroInsercao(FILE* arquivoBinario, DADOS* registro);
     void EscreveLixo(FILE* arquivoBinario, int tamRegistroRemovido, int tamRegistroInserido);
     void IniCabecalho(CABECALHO* cabecalho);
 

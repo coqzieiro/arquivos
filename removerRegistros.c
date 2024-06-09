@@ -38,7 +38,6 @@ void remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBus
     // Aloca memória para variáveis de tamanho variável
     AlocaMemoriaRegistro(&registro_dados);
 
-    int numRegistrosCorrespondentes = 0;
     int64_t prox;
 
     // Pula o cabeçalho
@@ -63,7 +62,7 @@ void remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBus
             if (strcmp(campo[j], "id") == 0 && registro_dados.id == atoi(valorCampo[j])) {
                 counterCampo++;
 
-                // Vai no arquivo de índice e procura o byteoffset do registro do ID
+                // Vai no arquivo de índice e procura o byteoffset po id
                 fseek(nomeArquivoIndices, 0, SEEK_SET);
                 int idRegistro;
                 int64_t byteOffsetIndice;
@@ -76,6 +75,7 @@ void remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBus
 
                         //  Se o arquivo binário tiver registros removidos inicialmente
                         if (byteOffSetUltimoRegistroRemovido != -1) {
+                            
                             // Pula para o campo próx do registro
                             fseek(nomeArquivoBinario, byteOffSetUltimoRegistroRemovido + 5, SEEK_SET);
                             fwrite(&byteOffsetIndice, sizeof(int64_t), 1, nomeArquivoBinario);
@@ -182,7 +182,6 @@ void remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBus
             //volta para o byteoffset que estava antes de mudarmos a posição no arquivo binário com freads e fwrites
             fseek(nomeArquivoBinario, byteOffsetAtual, SEEK_SET);
 
-            numRegistrosCorrespondentes++;
         }
     }
 
