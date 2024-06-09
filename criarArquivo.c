@@ -13,7 +13,7 @@ INTEGRANTES DO GRUPO:
 #include <string.h>
 #include <ctype.h>
 
-// Função para criar o arquivo binário
+// Função para criar o arquivo binário de dados
 void criarArquivoBinario(char* nomeArquivoCSV, char* nomeArquivoBinario){
 
     // Abertura dos arquivos
