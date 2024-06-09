@@ -18,7 +18,7 @@ int criarIndex(char* nomeArquivoBinario, char* nomeArquivoIndices, int opcao){
 
     // Abre para escrita
     FILE* arquivoBinarioDeIndices = fopen(nomeArquivoIndices, "wb");
-    if (arquivoBinarioDeIndices == NULL){
+    if(arquivoBinarioDeIndices == NULL){
         printf("Falha no processamento do arquivo.\n");
         return 0;
     }
@@ -47,7 +47,7 @@ int criarIndex(char* nomeArquivoBinario, char* nomeArquivoIndices, int opcao){
     fseek(arquivoBinario, 25, SEEK_SET);
 
     // Variável para calcular o byteOffset
-    int64_t byteOffset = 25; // Começa após o cabeçalho
+    int64_t byteOffset = 25;
 
     // Só para o loop quando encontrar o fim do arquivo
     while(1){
@@ -105,13 +105,13 @@ int criarIndex(char* nomeArquivoBinario, char* nomeArquivoIndices, int opcao){
 // Função para remover os registros especificados
 bool remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBuscas) {
     // Alocação de memória para 'valorCampo'
-    char** valorCampo = (char**)malloc(numeroDeBuscas * sizeof(char*));
+    char** valorCampo = (char**)malloc(numeroDeBuscas*sizeof(char*));
     for (int i = 0; i < numeroDeBuscas; i++) {
-        valorCampo[i] = (char*)malloc(40 * sizeof(char));
+        valorCampo[i] = (char*)malloc(40*sizeof(char));
     }
     
     // Alocação de memória para 'campo'
-    char** campo = (char**)malloc(numeroDeBuscas * sizeof(char*));
+    char** campo = (char**)malloc(numeroDeBuscas*sizeof(char*));
     for (int i = 0; i < numeroDeBuscas; i++) {
         campo[i] = (char*)malloc(14 * sizeof(char));
     }
@@ -134,7 +134,7 @@ bool remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBus
 
     // Enquanto fread funcionar (retonando 1), continuamos o loop
     while (fread(&prox, sizeof(int64_t), 1, nomeArquivoBinario) == 1) {
-        // Volta o 8bytes para ler o registro inteiro
+        // Volta para ler o registro inteiro
         fseek(nomeArquivoBinario, -sizeof(int64_t), SEEK_CUR);
 
         int64_t byteOffset = ftell(nomeArquivoBinario);
@@ -164,7 +164,7 @@ bool remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBus
 
                         //  Se o arquivo binário tiver registros removidos inicialmente
                         if (byteOffSetUltimoRegistroRemovido != -1) {
-                            //pula para o campo próx do registro
+                            // Pula para o campo próx do registro
                             fseek(nomeArquivoBinario, byteOffSetUltimoRegistroRemovido + 5, SEEK_SET);
                             fwrite(&byteOffsetIndice, sizeof(int64_t), 1, nomeArquivoBinario);
 
