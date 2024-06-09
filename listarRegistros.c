@@ -6,7 +6,7 @@ INTEGRANTES DO GRUPO:
 
 #include "funcionalidades.h"
 #include "definicoesTipos.h"
-#include "funcoes_aux.h"
+#include "funcoesAuxiliares.h"
 #include "funcoes_fornecidas.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,13 +30,13 @@ void listarRegistros(const char* nomeArquivoBinario) {
 
     // Se o arquivo estiver inconsistente
     if (cabecalho.status == '0') {
-        printf("Arquivo inconsistente.\n");
+        printf("Falha no processamento do arquivo.\n");
         fclose(arquivoBinario);
         return;
     }
 
     // Variável para armazenar o registro
-    DADOS registro;
+    DADOS_FIXOS registro;
 
     if (cabecalho.nroRegArq == 0){
         printf("Registro inexistente.\n\n");
@@ -47,7 +47,7 @@ void listarRegistros(const char* nomeArquivoBinario) {
     for (i = 0; i < cabecalho.nroRegArq + cabecalho.nroRegRem; i++) {
 
         // Leitura do registro campo a campo
-        LeituraRegistro(&registro, arquivoBinario);
+        LeituraRegistroFixo(&registro, arquivoBinario);
 
         // Se o registro não estiver removido
         if (registro.removido == '0') {

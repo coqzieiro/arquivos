@@ -13,9 +13,9 @@ INTEGRANTES DO GRUPO:
 
 int main(void){
     int opcao, numBuscas, numRemocoes, numInsercoes;
-    char nomeArquivoCSV[20];
-    char nomeArquivoBinario[20];
-    char nomeArquivoIndex[20];
+    char nomeArquivoCSV[50];
+    char nomeArquivoBinario[50];
+    char nomeArquivoIndex[50];
 
     scanf("%d", &opcao); // Determina qual funcionalidade irá executar
 

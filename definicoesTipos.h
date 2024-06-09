@@ -38,6 +38,21 @@ INTEGRANTES DO GRUPO:
         char* nomeClube;
     } DADOS;
 
+    // Registro de dados de campos fixos
+    typedef struct {
+        char removido;
+        int tamanhoRegistro;
+        int64_t prox;
+        int id;
+        int idade;
+        int tamNomeJog;
+        char nomeJogador[100];
+        int tamNacionalidade;
+        char nacionalidade[100];
+        int tamNomeClube;
+        char nomeClube[100];
+    } DADOS_FIXOS;
+
     // Armazena informações sobre os campos de busca
     typedef struct {
         char nomeCampo[MAX_CAMPO];

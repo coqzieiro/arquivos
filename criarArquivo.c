@@ -6,14 +6,14 @@ INTEGRANTES DO GRUPO:
 
 #include "funcionalidades.h"
 #include "definicoesTipos.h"
-#include "funcoes_aux.h"
+#include "funcoesAuxiliares.h"
 #include "funcoes_fornecidas.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
-// Função para criar o arquivo binário de dados
+// Função para criar o arquivo binário
 void criarArquivoBinario(char* nomeArquivoCSV, char* nomeArquivoBinario){
 
     // Abertura dos arquivos
@@ -44,7 +44,7 @@ void criarArquivoBinario(char* nomeArquivoCSV, char* nomeArquivoBinario){
     EscritaCabecalho(&cabecalho, arquivoBinario);
 
     // Variáveis para armazenar dados do registro
-    DADOS registro;
+    DADOS_FIXOS registro;
 
     // Pula a primeira linha do CSV
     char linha[45];
@@ -105,7 +105,8 @@ void criarArquivoBinario(char* nomeArquivoCSV, char* nomeArquivoBinario){
 
         // Nome do clube
         i=0;
-        while((c = getc(arquivoCSV)) != '\n' && c != EOF){
+        while(((c = getc(arquivoCSV)) != '\n' && c != EOF) && (c != '\r' && c != EOF)){
+            registro.nomeClube[i] = c;
             registro.nomeClube[i] = c;
             registro.tamNomeClube++;
             i++;
@@ -121,7 +122,7 @@ void criarArquivoBinario(char* nomeArquivoCSV, char* nomeArquivoBinario){
         registro.prox = -1;
 
         // Escrita de cada campo do registro no arquivo binário (sequencialmente)
-        EscritaRegistro(&registro, arquivoBinario);
+        EscritaRegistroFixo(&registro, arquivoBinario);
 
         // Atualização do offset do próximo byte
         cabecalho.proxByteOffset += registro.tamanhoRegistro;

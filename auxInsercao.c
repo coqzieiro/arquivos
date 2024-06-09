@@ -1,3 +1,9 @@
+/*
+INTEGRANTES DO GRUPO:
+                    Felipe da Costa Coqueiro,   NºUSP: 11781361
+                    Fernando Alee Suaiden,      NºUSP: 12680836
+*/
+
 #include "funcoesAuxiliares.h"
 #include "funcoes_fornecidas.h"
 #include "funcionalidades.h"

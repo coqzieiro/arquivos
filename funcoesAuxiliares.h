@@ -16,14 +16,17 @@ INTEGRANTES DO GRUPO:
     // Leitura de cabeçalho e registros
     void LeituraCabecalho(CABECALHO* cabecalho, FILE* arquivoBinario);
     void LeituraRegistro(DADOS* registro, FILE* arquivoBinario);
+    void LeituraRegistroFixo(DADOS_FIXOS* registro, FILE* arquivoBinario);
 
     // Escrita de cabeçalho e registros
     void EscritaCabecalho(CABECALHO* cabecalho, FILE* arquivoBinario);
     void EscritaRegistro(DADOS* registro, FILE* arquivoBinario);
+    void EscritaRegistroFixo(DADOS_FIXOS* registro, FILE* arquivoBinario);
     
     // Correspondecia de campos
     int todosCamposCorrespondem(DADOS registro, CAMPO_BUSCA camposBusca[], int numCamposBusca);
     int validarNomeCampo(const char *nomeCampo);
+    int todosCamposCorrespondemFixo(DADOS_FIXOS registro, CAMPO_BUSCA camposBusca[], int numCamposBusca);
     
     // Escrita no index
     void EscritaCabecalho_Index(CABECALHO_INDEX* cabecalho_index, FILE* nomeArquivoBinarioDeIndices);

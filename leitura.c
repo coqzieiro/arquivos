@@ -1,3 +1,9 @@
+/*
+INTEGRANTES DO GRUPO:
+                    Felipe da Costa Coqueiro,   NºUSP: 11781361
+                    Fernando Alee Suaiden,      NºUSP: 12680836
+*/
+
 #include "funcoesAuxiliares.h"
 #include "funcoes_fornecidas.h"
 #include "funcionalidades.h"
@@ -34,4 +40,27 @@ void LeituraRegistro(DADOS* registro, FILE* arquivoBinario){
     fread(&registro->tamNomeClube,    sizeof(registro->tamNomeClube),     1,                          arquivoBinario);
     fread(&registro->nomeClube,       sizeof(char),                      registro->tamNomeClube,      arquivoBinario);
     registro->nomeClube[registro->tamNomeClube] = '\0';
+}
+
+// Função para leitura do registro
+void LeituraRegistroFixo(DADOS_FIXOS* registro, FILE* arquivoBinario){
+    fread(&registro->removido,        sizeof(registro->removido),         1,                          arquivoBinario);
+    fread(&registro->tamanhoRegistro, sizeof(registro->tamanhoRegistro),  1,                          arquivoBinario);  
+    fread(&registro->prox,            sizeof(registro->prox),             1,                          arquivoBinario);   
+    fread(&registro->id,              sizeof(registro->id),               1,                          arquivoBinario);   
+    fread(&registro->idade,           sizeof(registro->idade),            1,                          arquivoBinario);
+    fread(&registro->tamNomeJog,      sizeof(registro->tamNomeJog),       1,                          arquivoBinario);
+    registro->nomeJogador[registro->tamNomeJog] ='\0';     
+
+    fread(&registro->nomeJogador,     sizeof(char),                      registro->tamNomeJog,        arquivoBinario);
+    
+    fread(&registro->tamNacionalidade,sizeof(registro->tamNacionalidade), 1,                          arquivoBinario);
+    registro->nacionalidade[registro->tamNacionalidade] ='\0';
+
+    fread(&registro->nacionalidade,   sizeof(char),                      registro->tamNacionalidade,  arquivoBinario);
+    
+    fread(&registro->tamNomeClube,    sizeof(registro->tamNomeClube),     1,                          arquivoBinario);
+    registro->nomeClube[registro->tamNomeClube] ='\0';
+
+    fread(&registro->nomeClube,       sizeof(char),                      registro->tamNomeClube,      arquivoBinario);
 }

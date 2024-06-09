@@ -6,7 +6,7 @@ INTEGRANTES DO GRUPO:
 
 #include "funcionalidades.h"
 #include "definicoesTipos.h"
-#include "funcoes_aux.h"
+#include "funcoesAuxiliares.h"
 #include "funcoes_fornecidas.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,7 +38,7 @@ void buscarRegistros(const char *arquivoEntrada, int numBuscas) {
     CAMPO_BUSCA camposBusca[MAX_CAMPO];
     int numCamposBusca;
 
-    DADOS registro;
+    DADOS_FIXOS registro;
     int encontrado;
 
     // Loop para cada busca
@@ -85,10 +85,10 @@ void buscarRegistros(const char *arquivoEntrada, int numBuscas) {
         while (!feof(entrada)) {
             
             // Leitura do registro
-            LeituraRegistro(&registro, entrada);
+            LeituraRegistroFixo(&registro, entrada);
 
             if (registro.removido == '0') {
-                if (todosCamposCorrespondem(registro, camposBusca, numCamposBusca)) { // Verifica se um registro corresponde a todos os campos
+                if (todosCamposCorrespondemFixo(registro, camposBusca, numCamposBusca)) { // Verifica se um registro corresponde a todos os campos
                     encontrado = 1;
                     printf("Nome do Jogador: %s\n", registro.nomeJogador[0] ? registro.nomeJogador : "SEM DADO");
                     printf("Nacionalidade do Jogador: %s\n", registro.nacionalidade[0] ? registro.nacionalidade : "SEM DADO");

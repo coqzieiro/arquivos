@@ -1,3 +1,9 @@
+/*
+INTEGRANTES DO GRUPO:
+                    Felipe da Costa Coqueiro,   NºUSP: 11781361
+                    Fernando Alee Suaiden,      NºUSP: 12680836
+*/
+
 #include "funcoesAuxiliares.h"
 #include "funcoes_fornecidas.h"
 #include "funcionalidades.h"
@@ -20,6 +26,21 @@ void EscritaCabecalho(CABECALHO* cabecalho, FILE* arquivoBinario){
 
 // Função para escrita no registro
 void EscritaRegistro(DADOS* registro, FILE* arquivoBinario){
+    fwrite(&registro->removido,          sizeof(registro->removido),         1,                         arquivoBinario);
+    fwrite(&registro->tamanhoRegistro,   sizeof(registro->tamanhoRegistro),  1,                         arquivoBinario);
+    fwrite(&registro->prox,              sizeof(registro->prox),             1,                         arquivoBinario);
+    fwrite(&registro->id,                sizeof(registro->id),               1,                         arquivoBinario);
+    fwrite(&registro->idade,             sizeof(registro->idade),            1,                         arquivoBinario);
+    fwrite(&registro->tamNomeJog,        sizeof(registro->tamNomeJog),       1,                         arquivoBinario);
+    fwrite(&registro->nomeJogador,       sizeof(char),                      registro->tamNomeJog,       arquivoBinario);
+    fwrite(&registro->tamNacionalidade,  sizeof(registro->tamNacionalidade), 1,                         arquivoBinario);
+    fwrite(&registro->nacionalidade,     sizeof(char),                      registro->tamNacionalidade, arquivoBinario);
+    fwrite(&registro->tamNomeClube,      sizeof(registro->tamNomeClube),     1,                         arquivoBinario);
+    fwrite(&registro->nomeClube,         sizeof(char),                      registro->tamNomeClube,     arquivoBinario);
+}
+
+// Função para escrita no registro
+void EscritaRegistroFixo(DADOS_FIXOS* registro, FILE* arquivoBinario){
     fwrite(&registro->removido,          sizeof(registro->removido),         1,                         arquivoBinario);
     fwrite(&registro->tamanhoRegistro,   sizeof(registro->tamanhoRegistro),  1,                         arquivoBinario);
     fwrite(&registro->prox,              sizeof(registro->prox),             1,                         arquivoBinario);

@@ -6,7 +6,7 @@ INTEGRANTES DO GRUPO:
 
 #include "funcionalidades.h"
 #include "definicoesTipos.h"
-#include "funcoes_aux.h"
+#include "funcoesAuxiliares.h"
 #include "funcoes_fornecidas.h"
 #include <stdio.h>
 #include <stdlib.h>
