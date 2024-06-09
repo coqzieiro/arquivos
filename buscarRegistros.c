@@ -6,7 +6,7 @@ INTEGRANTES DO GRUPO:
 
 #include "funcionalidades.h"
 #include "definicoesTipos.h"
-#include "funcoesAuxiliares.h"
+#include "funcoes_aux.h"
 #include "funcoes_fornecidas.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,7 +29,7 @@ void buscarRegistros(const char *arquivoEntrada, int numBuscas) {
 
     // Verifica a consistência do arquivo
     if(cabecalho.status == '0'){
-        printf("Falha no processamento do arquivo.\n");
+        printf("Arquivo inconsistente.\n");
         fclose(entrada);
         return;
     }

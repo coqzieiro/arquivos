@@ -24,7 +24,7 @@ INTEGRANTES DO GRUPO:
     int criarIndex(char* nomeArquivoBinario, char* nomeArquivoBinDeIndices, int opcao);
 
     // Funcionalidade 5
-    void remover(FILE* nomeArquivoBinario, FILE* nomeArquivoBinDeIndices, int numBuscas);
+    bool remover(FILE* nomeArquivoBinario, FILE* nomeArquivoBinDeIndices, int numBuscas);
     
     // Funcionalidade 6
     void inserir(FILE* nomeArquivoBinario);

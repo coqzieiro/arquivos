@@ -6,7 +6,7 @@ INTEGRANTES DO GRUPO:
 
 #include "funcionalidades.h"
 #include "definicoesTipos.h"
-#include "funcoesAuxiliares.h"
+#include "funcoes_aux.h"
 #include "funcoes_fornecidas.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -105,7 +105,7 @@ void criarArquivoBinario(char* nomeArquivoCSV, char* nomeArquivoBinario){
 
         // Nome do clube
         i=0;
-        while(((c = getc(arquivoCSV)) != '\n' && c != EOF) && (c != '\r' && c != EOF)){
+        while((c = getc(arquivoCSV)) != '\n' && c != EOF){
             registro.nomeClube[i] = c;
             registro.tamNomeClube++;
             i++;
