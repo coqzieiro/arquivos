@@ -6,8 +6,8 @@ INTEGRANTES DO GRUPO:
 
 #include "funcoes_aux.h"
 #include "funcoes_fornecidas.h"
-#include "funcoes.h"
-#include "funcoes1.h"
+#include "funcionalidades.h"
+#include "definicoesTipos.h"
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
@@ -99,15 +99,17 @@ int todosCamposCorrespondem(DADOS registro, CAMPO_BUSCA camposBusca[], int numCa
 
 // Função para validar o nome do campo
 int validarNomeCampo(const char *nomeCampo) {
-    if (strlen(nomeCampo) > MAX_CAMPO) { // Tamanho do campo não pode ser maior MAX_CAMPO
-        return(0);
+    // Tamanho do campo não deve ser maior que o limite
+    if (strlen(nomeCampo) > MAX_CAMPO) {
+        return 0;
     }
+    // Verifica se os caracteres são alfanuméricos
     for (int i = 0; nomeCampo[i] != '\0'; i++) {
         if (!isalnum(nomeCampo[i]) && nomeCampo[i] != '_') {
-            return(0);
+            return 0;
         }
     }
-    return(1);
+    return 1;
 }
 
 // Função para escrita no cabecalho do arquivo de índices
@@ -144,10 +146,10 @@ void AlocaMemoriaRegistro(DADOS* registro) {
 }
 
 // Função que lê os inputs do jogador
-bool LeDadosJogadorBin(FILE* arquivoBinario, DADOS* registro) {
+int LeituraRemocao(FILE* arquivoBinario, DADOS* registro) {
     // Leitura dos jogador
-    fread(&(registro->removido), 1, 1, arquivoBinario);
     fread(&(registro->tamanhoRegistro), 4, 1, arquivoBinario);
+    fread(&(registro->removido), 1, 1, arquivoBinario);
 
     // Verifica se o registro foi removido
     if (registro->removido == '1') {
@@ -169,11 +171,11 @@ bool LeDadosJogadorBin(FILE* arquivoBinario, DADOS* registro) {
     fread(registro->nomeClube, registro->tamNomeClube, 1, arquivoBinario);
     (registro->nomeClube)[registro->tamNomeClube] = '\0';
 
-    return true;
+    return 1;
 }
 
 // Função para obter o byte offset do último registro removido
-int64_t RetornaByteOffSetUltimoRemovido(FILE* arquivoBinario) {
+int64_t RetornaUltimoRemovido(FILE* arquivoBinario) {
     if (arquivoBinario == NULL) {
         printf("Erro: ponteiro do arquivo é NULL\n");
         return -1;

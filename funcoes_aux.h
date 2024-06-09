@@ -1,8 +1,14 @@
+/*
+INTEGRANTES DO GRUPO:
+                    Felipe da Costa Coqueiro,   NºUSP: 11781361
+                    Fernando Alee Suaiden,      NºUSP: 12680836
+*/
+
 #ifndef FUNCOES_AUX_H
     #define FUNCOES_AUX_H
 
-    #include "funcoes.h"
-    #include "funcoes1.h"
+    #include "funcionalidades.h"
+    #include "definicoesTipos.h"
     #include <stdio.h>
     #include <stdlib.h>
     #include <stdbool.h>
@@ -26,8 +32,8 @@
     // Funções auxiliares de remoção
     void InicializaRegistroJogador(DADOS* registro);
     void AlocaMemoriaRegistro(DADOS* registro);
-    bool LeDadosJogadorBin(FILE* arquivoBinario, DADOS* registro);
-    int64_t RetornaByteOffSetUltimoRemovido(FILE* arquivoBinario);
+    int LeituraRemocao(FILE* arquivoBinario, DADOS* registro);
+    int64_t RetornaUltimoRemovido(FILE* arquivoBinario);
     void LiberaMemoriaChar(char** nomeCampo, char** valorCampo, int numCamposBusca);
     void DesalocaMemoriaReg(DADOS* registro);
     void LeituraParametrosBusca(int numCamposBusca, char** nomeCampo, char** valorCampo);

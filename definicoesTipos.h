@@ -1,8 +1,15 @@
+/*
+INTEGRANTES DO GRUPO:
+                    Felipe da Costa Coqueiro,   NºUSP: 11781361
+                    Fernando Alee Suaiden,      NºUSP: 12680836
+*/
+
 #ifndef FUNCOES_H
 
     #define FUNCOES_H
 
     #define MAX_CAMPO 50
+    #define TAM_INICIAL_BYTEOFFSET 25
 
     #include <stdint.h>
     #include <stdio.h>
@@ -38,13 +45,22 @@
         char valorString[MAX_CAMPO];
     } CAMPO_BUSCA;
 
-    // Funcionalidade 1
-    void criarArquivoBinario(char* nomeArquivoCSV, char* nomeArquivoBinario);
+    // Registro de index do cabeçalho
+    typedef struct {
+        char status;
+    } CABECALHO_INDEX;
 
-    // Funcionalidade 2
-    void listarRegistros(const char* nomeArquivoBinario);
+    // Registro de index do registro
+    typedef struct {
+        int id;
+        int64_t byteOffset;
+    } REGISTRO_INDEX;
 
-    // Funcionalidade 3
-    void buscarRegistros(const char *arquivoEntrada, int numBuscas);
+    // Estrutura para armazenar as listas
+    typedef struct LISTA {
+        struct LISTA *prox;
+        int tamRegistro;
+        int64_t byteOffset;
+    } LISTA;
 
 #endif

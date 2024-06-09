@@ -1,8 +1,14 @@
+/*
+INTEGRANTES DO GRUPO:
+                    Felipe da Costa Coqueiro,   NºUSP: 11781361
+                    Fernando Alee Suaiden,      NºUSP: 12680836
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "funcoes.h"
-#include "funcoes1.h"
+#include "funcionalidades.h"
+#include "definicoesTipos.h"
 #include "funcoes_fornecidas.h"
 
 int main(void){
