@@ -15,25 +15,26 @@ INTEGRANTES DO GRUPO:
 
 // Função para criar index a partir do arquivo binário
 int criarIndex(char* nomeArquivoBinario, char* nomeArquivoIndices, int opcao){
-    // Abertura dos arquivos
+    // Abre para leitura o arquivo de dados
     FILE* arquivoBinario = fopen(nomeArquivoBinario, "rb");
     if (arquivoBinario == NULL){
         printf("Falha no processamento do arquivo.\n");
         return 0;
     }
 
-    // Abre para escrita
+    // Abre para escrita o arquivo de index
     FILE* arquivoBinarioDeIndices = fopen(nomeArquivoIndices, "wb");
     if(arquivoBinarioDeIndices == NULL){
         printf("Falha no processamento do arquivo.\n");
         return 0;
     }
+    
     // Inicialização do cabeçalho
     CABECALHO_INDEX cabecalho_index;
 
     cabecalho_index.status = '0';
 
-    // Escrita do cabeçalho no arquivo binário de índices
+    // Escrita do cabeçalho no arquivo de index
     EscritaCabecalho_Index(&cabecalho_index, arquivoBinarioDeIndices);
 
     // Variáveis para armazenar dados do registro
@@ -60,17 +61,17 @@ int criarIndex(char* nomeArquivoBinario, char* nomeArquivoIndices, int opcao){
         char removido;
         int tamanhoRegistroInteiro;
 
-        // Tente ler o campo removido
+        // Tenta ler o campo removido
         if (fread(&removido, sizeof(char), 1, arquivoBinario) != 1) {
             break; // Sai do loop se não conseguir ler
         }
 
-        // Tente ler o tamanho do registro
+        // Tenta ler o tamanho do registro
         if (fread(&tamanhoRegistroInteiro, sizeof(int), 1, arquivoBinario) != 1) {
             break; // Sai do loop se não conseguir ler
         }
 
-        // Pula o campo 'prox' (8 bytes) e lê 'id' (4 bytes)
+        // Tenta ler o tamanho do registro id
         fseek(arquivoBinario, 8, SEEK_CUR);
         if (fread(&registro_index.id, sizeof(int), 1, arquivoBinario) != 1) {
             break; // Sai do loop se não conseguir ler

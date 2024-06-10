@@ -55,11 +55,11 @@ int main(void){
                 arquivoIndex = fopen(nomeArquivoIndex, "wb");
             }
 
-            int qtdParametros;
+            int numCampos;
 
             for(int i = 0; i < numRemocoes; i++) {
-                scanf("%d", &qtdParametros);
-                remover(arquivoBinario, arquivoIndex, qtdParametros);
+                scanf("%d", &numCampos);
+                remover(arquivoBinario, arquivoIndex, numCampos);
             }
 
             criarIndex(nomeArquivoBinario, nomeArquivoIndex, opcao);

@@ -22,13 +22,13 @@ void remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBus
         valorCampo[i] = (char*)malloc(40*sizeof(char));
     }
     
-    // Alocação de memória para 'campo'
+    // Alocação de memória para campo
     char** campo = (char**)malloc(numeroDeBuscas*sizeof(char*));
     for (int i = 0; i < numeroDeBuscas; i++) {
         campo[i] = (char*)malloc(14 * sizeof(char));
     }
 
-    // Lê os campos da busca
+    // Lê os campos de busca
     LeituraParametrosBusca(numeroDeBuscas, campo, valorCampo);
 
     // Inicializa registro de dados
@@ -43,7 +43,6 @@ void remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBus
     // Pula o cabeçalho
     fseek(nomeArquivoBinario, TAM_INICIAL_BYTEOFFSET, SEEK_SET);
 
-    // Enquanto fread funcionar (retonando 1), continuamos o loop
     while (fread(&prox, sizeof(int64_t), 1, nomeArquivoBinario) == 1) {
         // Volta para ler o registro inteiro
         fseek(nomeArquivoBinario, -sizeof(int64_t), SEEK_CUR);
@@ -62,7 +61,7 @@ void remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBus
             if (strcmp(campo[j], "id") == 0 && registro_dados.id == atoi(valorCampo[j])) {
                 counterCampo++;
 
-                // Vai no arquivo de índice e procura o byteoffset po id
+                // Vai no arquivo de índice e procura o byteoffset por id
                 fseek(nomeArquivoIndices, 0, SEEK_SET);
                 int idRegistro;
                 int64_t byteOffsetIndice;
@@ -73,10 +72,10 @@ void remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBus
                         // ByteOffSet do último registro removido
                         int byteOffSetUltimoRegistroRemovido = RetornaUltimoRemovido(nomeArquivoBinario);
 
-                        //  Se o arquivo binário tiver registros removidos inicialmente
+                        //  Tem registros removidos
                         if (byteOffSetUltimoRegistroRemovido != -1) {
-                            
-                            // Pula para o campo próx do registro
+
+                            // Pula para o prox do registro
                             fseek(nomeArquivoBinario, byteOffSetUltimoRegistroRemovido + 5, SEEK_SET);
                             fwrite(&byteOffsetIndice, sizeof(int64_t), 1, nomeArquivoBinario);
 
@@ -84,7 +83,7 @@ void remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBus
                             char removido = '1';
                             fwrite(&removido, sizeof(char), 1, nomeArquivoBinario);
 
-                        // Senão, o arquivo binário não tem registros removidos inicialmente e vem para cá
+                        // Não tem registros removidos
                         } else {
                             // fseek para o byteoffset do registro que será removido
                             fseek(nomeArquivoBinario, byteOffsetIndice, SEEK_SET);
@@ -137,13 +136,13 @@ void remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBus
         // Se todos os critérios forem atendidos
         if (counterCampo == numeroDeBuscas) {
 
-            // Salvamos o byteoffset atual pois os freads e fwrites vão mudar a posição do arquivo
+            // Salvamos o byteoffset atual 
             int64_t byteOffsetAtual = ftell(nomeArquivoBinario);
 
             int byteOffSetUltimoRegistroRemovido = RetornaUltimoRemovido(nomeArquivoBinario);
 
             if (byteOffSetUltimoRegistroRemovido != -1) {
-                // pulamos para o campo prox do registro
+                // pulamos para o prox do registro
                 fseek(nomeArquivoBinario, byteOffSetUltimoRegistroRemovido + 5, SEEK_SET);
                 fwrite(&byteOffset, sizeof(int64_t), 1, nomeArquivoBinario);
 
@@ -179,7 +178,7 @@ void remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBus
 
             RetornaUltimoRemovido(nomeArquivoBinario);
 
-            //volta para o byteoffset que estava antes de mudarmos a posição no arquivo binário com freads e fwrites
+            // Volta para o byteoffset que estava antes
             fseek(nomeArquivoBinario, byteOffsetAtual, SEEK_SET);
 
         }
