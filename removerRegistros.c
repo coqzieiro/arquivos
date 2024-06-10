@@ -183,9 +183,7 @@ void remover(FILE* nomeArquivoBinario, FILE* nomeArquivoIndices, int numeroDeBus
 
         }
     }
-
     // Libera memória alocada
     LiberaMemoriaChar(campo, valorCampo, numeroDeBuscas);
     DesalocaMemoriaReg(&registro_dados);
-
 }
