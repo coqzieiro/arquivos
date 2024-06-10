@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "funcoes_fornecidas.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "limits.h": "c"
     }
 }

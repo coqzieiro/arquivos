@@ -13,8 +13,9 @@ INTEGRANTES DO GRUPO:
 #include <stdio.h>
 #include <ctype.h>
 
-// Função para inserir ordenado na lista
+// Função que insere o nó na lista de forma ordenada 
 void InserirOrdenado(LISTA** cabeca, LISTA* novoNo) {
+  
     LISTA* atual;
 
     // Caso para o cabeçalho da lista
@@ -36,16 +37,9 @@ void InserirOrdenado(LISTA** cabeca, LISTA* novoNo) {
     }
 }
 
-// Função para reescrever os registros removidos no arquivo binário
+// Função que reescreve os registros removidos no arquivo de dados
 int ReescreveRemovidos(FILE* arquivoBinario, LISTA* removidos) {
-    
-    if (arquivoBinario == NULL) {
-        printf("Erro: ponteiro do arquivo é NULL.\n");
-        return false;
-    }
-
     if (removidos == NULL) {
-        // Seta o topo como
         fseek(arquivoBinario, 1, SEEK_SET);
         int64_t topo = -1;
         fwrite(&topo, sizeof(int64_t), 1, arquivoBinario);
@@ -76,29 +70,29 @@ int ReescreveRemovidos(FILE* arquivoBinario, LISTA* removidos) {
     return 1;
 }
 
-// Função que libera memória alocada para a lista encadeada
+// liberação da memória da lista encadeada
 void DesalocaLista(LISTA* cabeca) {
     LISTA* atual = cabeca;
     LISTA* proximo;
 
     while (atual != NULL) {
         proximo = atual->prox;
+
         free(atual);
         atual = proximo;
     }
 }
 
-// Função retorna o byte offset do registro a ser substituido no binario
+// Função que retorna o melhor byteoffset para inserção (dentre os removidos) de acordo com a estratégia bestFit
 int64_t MetodoBestFit(LISTA** removidos, int tamRegistro, FILE* arquivoBinario) {
     LISTA* anterior = NULL;
     LISTA* atual = *removidos;
 
-    // Percorre a lista e encontra 
+    // Passa pela lista inteira
     while (atual != NULL) {
         if (atual->tamRegistro >= tamRegistro) {
             int64_t offset = atual->byteOffset;
 
-            // Remove o registro da lista
             if (anterior == NULL) {
                 *removidos = atual->prox;
 
@@ -113,7 +107,7 @@ int64_t MetodoBestFit(LISTA** removidos, int tamRegistro, FILE* arquivoBinario) 
         atual = atual->prox;
     }
 
-    // Não cabe
+    // Não há offset que o registro caiba
     return -1;
 }
 
@@ -144,8 +138,7 @@ LISTA* OrdenaRegistrosRem(FILE* arquivoBinario){
     AlocaMemoriaRegistro(&registro_dados);
 
     while(topo != -1){
-        if (fread(&registro_dados.removido, sizeof(char), 1, arquivoBinario) != 1 ||
-            fread(&registro_dados.tamanhoRegistro, sizeof(int), 1, arquivoBinario) != 1 ||
+        if (fread(&registro_dados.removido, sizeof(char), 1, arquivoBinario) != 1 || fread(&registro_dados.tamanhoRegistro, sizeof(int), 1, arquivoBinario) != 1 ||
             fread(&registro_dados.prox, sizeof(int64_t), 1, arquivoBinario) != 1) {
 
             printf("Erro: falha em ler o próximo registro\n");
@@ -179,7 +172,7 @@ LISTA* OrdenaRegistrosRem(FILE* arquivoBinario){
     return(listaOrdenada);
 }
 
-// Função que campos relacionados ao jogador
+// Leitura dos campos relacionados ao registro
 void LeituraCampos(DADOS* registro){
 
     if(registro == NULL){
@@ -199,19 +192,14 @@ void LeituraCampos(DADOS* registro){
         registro->idade = atoi(idade); 
     }
 
-    // Leitura nomeJogador
     scan_quote_string(registro->nomeJogador);
-
-    // Leitura nacionalidade
     scan_quote_string(registro->nacionalidade);
-
-    // Leitura nomeClube
     scan_quote_string(registro->nomeClube);
 
     return;
 }
 
-// atualiza o tamanho das strings do jogador com base no tamanho real
+// atualiza o tamanho das strings do registro
 int AtualizaTamanhoStrings(DADOS* registro) {
     if (registro == NULL){
         return 0;
@@ -223,7 +211,7 @@ int AtualizaTamanhoStrings(DADOS* registro) {
     return 1;
 }
 
-// Função que verifica se deve adicionar ou reutilizar um registro
+// Função que retorna o tamanho do registro removido e tamanho do registro a ser inserido
 int* ReutilizarRegistro(FILE* arquivoBinario, CABECALHO* cabecalho, DADOS* registro, int BestFit, LISTA* removidos) {
     
     // Tamanho do registro removido
@@ -232,18 +220,20 @@ int* ReutilizarRegistro(FILE* arquivoBinario, CABECALHO* cabecalho, DADOS* regis
     // Registro removido que pode ser usado
     if(BestFit != -1){
 
-        // Atualiza os registros removidos
+        // Decrementa num registro removidos do cabeçalho
         cabecalho->nroRegRem--;
 
         // Pega o tamanho do registro
         fseek(arquivoBinario, BestFit, SEEK_SET);
+
         fread(&registro->removido, sizeof(char), 1, arquivoBinario);
+
         fread(&tamRegRemovido, sizeof(int), 1, arquivoBinario);
 
         // Reutiliza o registro removido
         fseek(arquivoBinario, BestFit, SEEK_SET);
     } else {
-        // Adiciona no final do arquivo
+        // Atualiza proxByteOffset
         cabecalho->proxByteOffset += registro->tamanhoRegistro;
 
         // Atualiza o tamanho do registro removido
@@ -253,15 +243,14 @@ int* ReutilizarRegistro(FILE* arquivoBinario, CABECALHO* cabecalho, DADOS* regis
         fseek(arquivoBinario, 0, SEEK_END);
     }
 
-    if(removidos && BestFit == cabecalho->topo) {
+    if(removidos && BestFit == cabecalho->topo)
         // Atualiza o topo
         cabecalho->topo = removidos->byteOffset;
-    }
 
     int tamRegistroInserido = registro->tamanhoRegistro;
     registro->tamanhoRegistro = tamRegRemovido;
 
-    // Retorna um vetor do registro novo e o removido
+    // Retorna um vetor com tamanho do registro a ser inserido e tamanho do registro removido
     int* tamanhoReg = (int*)malloc(2*sizeof(int));
     tamanhoReg[0] = tamRegRemovido;
     tamanhoReg[1] = tamRegistroInserido;
@@ -286,15 +275,13 @@ void EscreveRegistroInsercao(FILE* arquivoBinario, DADOS* registro) {
 
 // Função que escreve o lixo no final do registro
 void EscreveLixo(FILE* arquivoBinario, int tamRegistroRemovido, int tamRegistroInserido) {
-    if (tamRegistroRemovido == tamRegistroInserido){
-        return;
-    }
+    if (tamRegistroRemovido == tamRegistroInserido) return;
 
-    int bytesRestantes = tamRegistroRemovido - tamRegistroInserido;
+    int diferencaBytes = tamRegistroRemovido - tamRegistroInserido;
 
-    for(int i = 0; i < bytesRestantes; i++){
-        char lixo = '$';
-        fwrite(&lixo, sizeof(char), 1, arquivoBinario);
+    for(int i = 0; i < diferencaBytes; i++){
+        char cifrao = '$';
+        fwrite(&cifrao, sizeof(char), 1, arquivoBinario);
     }
 }
 

@@ -14,7 +14,7 @@ INTEGRANTES DO GRUPO:
 #include <ctype.h>
 #include <limits.h>
 
-// Função para leitura do cabeçalho
+// Função que lê o cabeçalho
 void LeituraCabecalho(CABECALHO* cabecalho, FILE* arquivoBinario) {
     fseek(arquivoBinario, 0, SEEK_SET);
     fread(&cabecalho->status,         sizeof(cabecalho->status),         1, arquivoBinario);
@@ -24,7 +24,7 @@ void LeituraCabecalho(CABECALHO* cabecalho, FILE* arquivoBinario) {
     fread(&cabecalho->nroRegRem,      sizeof(cabecalho->nroRegRem),      1, arquivoBinario);
 }
 
-// Função para leitura do registro
+// Função que lê o registro
 void LeituraRegistro(DADOS* registro, FILE* arquivoBinario){
     fread(&registro->removido,        sizeof(registro->removido),         1,                          arquivoBinario);
     fread(&registro->tamanhoRegistro, sizeof(registro->tamanhoRegistro),  1,                          arquivoBinario);
@@ -42,7 +42,7 @@ void LeituraRegistro(DADOS* registro, FILE* arquivoBinario){
     registro->nomeClube[registro->tamNomeClube] = '\0';
 }
 
-// Função para leitura do registro
+// Função que lê o registro 
 void LeituraRegistroFixo(DADOS_FIXOS* registro, FILE* arquivoBinario){
     fread(&registro->removido,        sizeof(registro->removido),         1,                          arquivoBinario);
     fread(&registro->tamanhoRegistro, sizeof(registro->tamanhoRegistro),  1,                          arquivoBinario);  

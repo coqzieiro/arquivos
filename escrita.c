@@ -14,7 +14,7 @@ INTEGRANTES DO GRUPO:
 #include <ctype.h>
 #include <limits.h>
 
-// Função para escrita no cabecalho
+// Função que escreve o cabeçalho no arquivo de dados
 void EscritaCabecalho(CABECALHO* cabecalho, FILE* arquivoBinario){
     fseek(arquivoBinario, 0, SEEK_SET);
     fwrite(&cabecalho->status,           sizeof(cabecalho->status),         1, arquivoBinario);
@@ -24,7 +24,7 @@ void EscritaCabecalho(CABECALHO* cabecalho, FILE* arquivoBinario){
     fwrite(&cabecalho->nroRegRem,        sizeof(cabecalho->nroRegRem),      1, arquivoBinario);
 }
 
-// Função para escrita no registro
+// Função que escreve o registro no arquivo de dados
 void EscritaRegistro(DADOS* registro, FILE* arquivoBinario){
     fwrite(&registro->removido,          sizeof(registro->removido),         1,                         arquivoBinario);
     fwrite(&registro->tamanhoRegistro,   sizeof(registro->tamanhoRegistro),  1,                         arquivoBinario);
@@ -39,7 +39,7 @@ void EscritaRegistro(DADOS* registro, FILE* arquivoBinario){
     fwrite(&registro->nomeClube,         sizeof(char),                      registro->tamNomeClube,     arquivoBinario);
 }
 
-// Função para escrita no registro
+// Função que escreve o registro no arquivo de dados
 void EscritaRegistroFixo(DADOS_FIXOS* registro, FILE* arquivoBinario){
     fwrite(&registro->removido,          sizeof(registro->removido),         1,                         arquivoBinario);
     fwrite(&registro->tamanhoRegistro,   sizeof(registro->tamanhoRegistro),  1,                         arquivoBinario);

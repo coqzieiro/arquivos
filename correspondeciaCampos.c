@@ -74,7 +74,7 @@ int todosCamposCorrespondemFixo(DADOS_FIXOS registro, CAMPO_BUSCA camposBusca[],
     return(1);
 }
 
-// Função que atualiza os campos secundarios do registro do jogador
+// Função para atualizar campos do registro
 void AtualizaCampos(DADOS* registro) {
     registro->tamanhoRegistro = 33 + registro->tamNomeJog + registro->tamNacionalidade + registro->tamNomeClube;
     registro->removido = '0';
