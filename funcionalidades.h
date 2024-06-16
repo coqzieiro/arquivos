@@ -29,4 +29,7 @@ INTEGRANTES DO GRUPO:
     // Funcionalidade 6
     void inserir(FILE* nomeArquivoBinario);
 
+    // Funcionalidade 7
+    void criarArvoreB(FILE* nomeArquivoBinario, FILE* nomeArquivoArvoreB);
+
 #endif

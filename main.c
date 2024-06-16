@@ -111,6 +111,29 @@ int main(void){
             binarioNaTela(nomeArquivoIndex);
 
             break;
+        case 7:
+            char nomeArquivoArvoreB[50];
+
+            // Funcionalidade 7 (cria arquivo de índices com uma árvore-B)
+            scanf("%s %s", nomeArquivoBinario, nomeArquivoArvoreB);
+            
+            // Abertura do arquivo
+            FILE* arquivoBinario = fopen(nomeArquivoBinario, "rb");
+            FILE* arquivoArvoreB = fopen(nomeArquivoArvoreB, "wb");
+
+            if (arquivoBinario == NULL) {
+                printf("Falha no processamento do arquivo.\n");
+                return 0;
+            }
+
+            criarArvoreB(arquivoBinario, arquivoArvoreB);
+
+            // Fechar os arquivos
+            fclose(arquivoBinario);
+            fclose(arquivoArvoreB);
+
+            binarioNaTela(nomeArquivoArvoreB);
+
         default: 
             printf("Opção inválida.\n");
             return(1);
